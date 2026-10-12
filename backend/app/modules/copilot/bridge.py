@@ -10,7 +10,9 @@ the router frames as SSE. Provider is injectable for tests.
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
+from datetime import UTC, datetime
 from uuid import UUID
+from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -77,12 +79,29 @@ _LANGUAGE_NAMES = {
 }
 
 
-def build_system_prompt(locale: str) -> str:
-    """System prompt that pins the reply language to the clinic's locale.
+def _time_rule(timezone: str, now: datetime | None) -> str:
+    try:
+        tz = ZoneInfo(timezone)
+    except (ZoneInfoNotFoundError, ValueError):
+        return ""
+    local = (now or datetime.now(UTC)).astimezone(tz)
+    return (
+        f"\n\nThe clinic's time zone is {timezone}; it is now "
+        f"{local:%A %d %B %Y, %H:%M} there. Tool results give timestamps in UTC "
+        "(ending in +00:00 or Z): always convert them to the clinic's time zone "
+        "before showing them, and read 'today' and 'tomorrow' in clinic time."
+    )
+
+
+def build_system_prompt(
+    locale: str, timezone: str | None = None, now: datetime | None = None
+) -> str:
+    """System prompt that pins the reply language and clock to the clinic.
 
     Tool descriptions and tool payloads may be in another language (several
     modules describe their tools in Spanish); the explicit rule keeps that
-    from leaking into the reply.
+    from leaking into the reply. Tool timestamps are UTC, so without the
+    clinic's zone the model reports appointment times hours off.
     """
     language = _LANGUAGE_NAMES.get(locale, _LANGUAGE_NAMES["en"])
     return (
@@ -90,24 +109,40 @@ def build_system_prompt(locale: str) -> str:
         "user writes to you in another language — then reply in the user's "
         "language. Tool descriptions and tool results may be written in a "
         "different language; never let that change the language of your reply, "
-        "and translate any status or label you quote from them." + _PLAYBOOKS
+        "and translate any status or label you quote from them."
+        + (_time_rule(timezone, now) if timezone else "")
+        + _PLAYBOOKS
     )
 
 
 SYSTEM_PROMPT = build_system_prompt(settings.CONTENT_LOCALE)
 
 
-async def clinic_locale(db: AsyncSession, clinic_id: UUID) -> str:
+async def _clinic_row(db: AsyncSession, clinic_id: UUID):
+    return (
+        await db.execute(
+            text("SELECT settings, timezone FROM clinics WHERE id = :id"), {"id": clinic_id}
+        )
+    ).first()
+
+
+def _locale_of(row) -> str:
     # Same lookup as notifications.resolve_clinic_communication_locale,
     # inlined to keep copilot's depends = [] (notifications is a module).
-    row = (
-        await db.execute(text("SELECT settings FROM clinics WHERE id = :id"), {"id": clinic_id})
-    ).first()
     clinic_settings = (row.settings or {}) if row else {}
     lang = (
         clinic_settings.get("communication_language") if isinstance(clinic_settings, dict) else None
     )
     return lang or settings.CONTENT_LOCALE
+
+
+async def clinic_locale(db: AsyncSession, clinic_id: UUID) -> str:
+    return _locale_of(await _clinic_row(db, clinic_id))
+
+
+async def clinic_system_prompt(db: AsyncSession, clinic_id: UUID) -> str:
+    row = await _clinic_row(db, clinic_id)
+    return build_system_prompt(_locale_of(row), row.timezone if row else None)
 
 
 # Copilot gates writes via inline confirmation (a turn-level pause), so
@@ -216,7 +251,7 @@ async def drive_turn(
         session_id=session_id,
     )
 
-    system = build_system_prompt(await clinic_locale(db, conv.clinic_id))
+    system = await clinic_system_prompt(db, conv.clinic_id)
     start = len(history)
     async for ev in run_turn(
         ctx=ctx,
@@ -278,7 +313,7 @@ async def resume_turn(
     history.append(tool_msg)
     await ConversationService.append_message(db, conv, role="tool", blocks=tool_msg.content)
 
-    system = build_system_prompt(await clinic_locale(db, conv.clinic_id))
+    system = await clinic_system_prompt(db, conv.clinic_id)
     start = len(history)
     async for ev in run_turn(
         ctx=ctx,

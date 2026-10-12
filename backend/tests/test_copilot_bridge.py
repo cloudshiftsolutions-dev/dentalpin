@@ -116,6 +116,20 @@ def test_system_prompt_pins_reply_language() -> None:
     assert "Always reply in English" in build_system_prompt("xx")
 
 
+def test_system_prompt_gives_clinic_local_time() -> None:
+    from datetime import UTC, datetime
+
+    from app.modules.copilot.bridge import build_system_prompt
+
+    now = datetime(2026, 10, 12, 22, 0, tzinfo=UTC)
+    prompt = build_system_prompt("en", "Asia/Kolkata", now)
+    assert "time zone is Asia/Kolkata" in prompt
+    assert "Tuesday 13 October 2026, 03:30" in prompt
+    assert "convert them to the clinic's time zone" in prompt
+    assert "time zone" not in build_system_prompt("en", "Not/AZone", now)
+    assert "time zone" not in build_system_prompt("en")
+
+
 @pytest.mark.asyncio
 async def test_text_turn_persists_messages(db_session, test_clinic) -> None:
     conv, settings_row, user_id, agent_id, session_id = await _setup(db_session, test_clinic.id)
