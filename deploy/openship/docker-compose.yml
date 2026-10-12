@@ -1,0 +1,109 @@
+# DentalPin on Openship (CloudShift homelab), built from this fork.
+#
+# Backend and frontend are built from source (same Dockerfiles as the
+# upstream release workflow), so fork changes ship on every deploy. A small
+# Caddy router keeps a single origin (PUBLIC_URL): /api/* and /health go to
+# the backend, everything else to the Nuxt frontend. TLS is terminated
+# upstream (VPS Caddy), so the router speaks plain HTTP on ROUTER_PORT.
+#
+# Volume names must stay `pgdata` / `storage_data`: Openship prefixes them
+# with the project name, and renaming them would start on empty volumes.
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dental_clinic}
+      POSTGRES_USER: ${POSTGRES_USER:-dental}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dental} -d ${POSTGRES_DB:-dental_clinic}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ../../backend
+      dockerfile: Dockerfile
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-dental}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-dental_clinic}
+      SECRET_KEY: ${SECRET_KEY}
+      BUDGET_PUBLIC_SECRET_KEY: ${BUDGET_PUBLIC_SECRET_KEY}
+      AGENDA_PUBLIC_SECRET_KEY: ${AGENDA_PUBLIC_SECRET_KEY}
+      ENVIRONMENT: production
+      ALLOWED_ORIGINS: ${PUBLIC_URL}
+      STORAGE_BACKEND: local
+      STORAGE_LOCAL_PATH: /app/storage
+      SENTRY_DSN: ${SENTRY_DSN:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # Any OpenAI-compatible gateway (e.g. Token Harbor); empty = api.openai.com.
+      OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}
+      COPILOT_PROVIDER_DEFAULT: ${COPILOT_PROVIDER_DEFAULT:-openai}
+      COPILOT_MODEL_CHAT_OPENAI: ${COPILOT_MODEL_CHAT_OPENAI:-gpt-5.4-mini}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      # Fallback language for stored copy (timeline titles, catalog names)
+      # and the copilot when a clinic has no communication_language set.
+      CONTENT_LOCALE: ${CONTENT_LOCALE:-en}
+      SEED_ON_STARTUP: ${SEED_ON_STARTUP:-0}
+      SEED_LANG: ${SEED_LANG:-en}
+      SEED_COUNTRY: ${SEED_COUNTRY:-in}
+      TZ: ${TZ:-Asia/Kolkata}
+    volumes:
+      - storage_data:/app/storage
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/health', timeout=2).status == 200 else 1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ../..
+      dockerfile: frontend/Dockerfile.prod
+    environment:
+      NUXT_PUBLIC_API_BASE_URL: ${PUBLIC_URL}
+      API_BASE_URL_SERVER: http://backend:8000
+      NUXT_PUBLIC_DOCS_URL: ${DOCS_URL:-https://docs.dentalpin.com}
+      NUXT_CSP_MODE: ${NUXT_CSP_MODE:-report}
+      TZ: ${TZ:-Asia/Kolkata}
+    depends_on:
+      backend:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  router:
+    build:
+      context: ./router
+      dockerfile: Dockerfile
+    ports:
+      - "${ROUTER_PORT:-3030}:3030"
+    depends_on:
+      - frontend
+      - backend
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://127.0.0.1:3030/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  storage_data:
