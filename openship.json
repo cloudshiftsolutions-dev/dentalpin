@@ -1,5 +1,5 @@
 {
-  "composePath": "deploy/openship/docker-compose.yml",
+  "composePath": "docker-compose.openship.yml",
   "runtime": "docker",
   "port": 3030
 }
