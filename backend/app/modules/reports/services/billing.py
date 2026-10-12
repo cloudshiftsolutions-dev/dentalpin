@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from app.core.auth.models import User
+from app.core.i18n_names import catalog_name
 from app.modules.billing.models import Invoice, InvoiceItem, InvoicePayment, InvoiceSeries
 from app.modules.budget.models import Budget, BudgetItem
 from app.modules.catalog.models import VatType
@@ -330,7 +331,7 @@ class BillingReportService:
         if vat_type_ids:
             result = await db.execute(select(VatType).where(VatType.id.in_(vat_type_ids)))
             for vt in result.scalars():
-                vat_names[vt.id] = vt.names.get("es", f"IVA {vt.rate}%")
+                vat_names[vt.id] = catalog_name(vt.names) or f"IVA {vt.rate}%"
 
         return [
             {
@@ -519,7 +520,7 @@ class BillingReportService:
         if vat_type_ids:
             result = await db.execute(select(VatType).where(VatType.id.in_(vat_type_ids)))
             for vt in result.scalars():
-                vat_names[vt.id] = vt.names.get("es", f"IVA {vt.rate}%")
+                vat_names[vt.id] = catalog_name(vt.names) or f"IVA {vt.rate}%"
 
         return [
             {

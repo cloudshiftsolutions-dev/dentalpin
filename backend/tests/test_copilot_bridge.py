@@ -101,11 +101,19 @@ def test_system_prompt_keeps_offbooks_rule_and_playbooks() -> None:
     """The playbook refactor must never drop the off-books sentence."""
     from app.modules.copilot.bridge import SYSTEM_PROMPT
 
-    assert "ejes contables separados" in SYSTEM_PROMPT
-    assert "NUNCA" in SYSTEM_PROMPT
+    assert "separate accounting axes" in SYSTEM_PROMPT
+    assert "NEVER" in SYSTEM_PROMPT
     # Playbooks present.
-    assert "Briefing del día" in SYSTEM_PROMPT
-    assert "Cubrir un hueco" in SYSTEM_PROMPT
+    assert "Daily briefing" in SYSTEM_PROMPT
+    assert "Fill a cancellation gap" in SYSTEM_PROMPT
+
+
+def test_system_prompt_pins_reply_language() -> None:
+    from app.modules.copilot.bridge import build_system_prompt
+
+    assert "Always reply in English" in build_system_prompt("en")
+    assert "Always reply in Spanish" in build_system_prompt("es")
+    assert "Always reply in English" in build_system_prompt("xx")
 
 
 @pytest.mark.asyncio

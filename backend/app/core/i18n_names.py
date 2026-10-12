@@ -30,10 +30,21 @@ CATALOG_NAME_PRIORITY: tuple[str, ...] = (
 )
 
 
-def catalog_name(names: dict | None) -> str | None:
+def _priority(locale: str | None) -> tuple[str, ...]:
+    if locale is None:
+        from app.config import settings
+
+        locale = settings.CONTENT_LOCALE
+    if not locale or locale == CATALOG_NAME_PRIORITY[0]:
+        return CATALOG_NAME_PRIORITY
+    return (locale, *(lang for lang in CATALOG_NAME_PRIORITY if lang != locale))
+
+
+def catalog_name(names: dict | None, locale: str | None = None) -> str | None:
     """Resolve a display name from a catalog ``names`` JSONB dict.
 
-    Priority order per :data:`CATALOG_NAME_PRIORITY`, then any non-empty
+    ``locale`` (default ``settings.CONTENT_LOCALE``) is tried first, then
+    the rest of :data:`CATALOG_NAME_PRIORITY`, then any non-empty
     translation (items created under a core-only locale never degrade to
     ``None``/internal code), else ``None``. Whitespace-only strings are
     treated as missing.
@@ -44,7 +55,7 @@ def catalog_name(names: dict | None) -> str | None:
     def usable(value: object) -> bool:
         return bool(isinstance(value, str) and value.strip())
 
-    for lang in CATALOG_NAME_PRIORITY:
+    for lang in _priority(locale):
         value = names.get(lang)
         if usable(value):
             return value  # type: ignore[return-value]

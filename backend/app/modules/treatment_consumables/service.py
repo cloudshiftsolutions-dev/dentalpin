@@ -14,22 +14,16 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.i18n_names import catalog_name
 from app.modules.catalog.models import TreatmentCatalogItem
 from app.modules.inventory.models import InventoryItem
 from app.modules.treatment_consumables.models import TreatmentConsumable
 
 
 def treatment_display_name(treatment: TreatmentCatalogItem) -> str:
-    """Catalog names are localized JSONB — prefer es > en > first,
+    """Catalog names are localized JSONB — resolved via ``catalog_name``,
     falling back to the internal code for a row with no names."""
-    names = treatment.names or {}
-    for key in ("es", "en"):
-        if names.get(key):
-            return str(names[key])
-    for value in names.values():
-        if value:
-            return str(value)
-    return treatment.internal_code or "—"
+    return catalog_name(treatment.names) or treatment.internal_code or "—"
 
 
 class TreatmentConsumablesService:

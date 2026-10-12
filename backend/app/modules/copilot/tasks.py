@@ -38,7 +38,7 @@ from app.core.events import event_bus
 from app.core.events.types import EventType
 from app.database import async_session_maker
 
-from .bridge import COPILOT_GUARDRAILS
+from .bridge import COPILOT_GUARDRAILS, clinic_locale
 from .models import CopilotSettings
 
 logger = logging.getLogger(__name__)
@@ -57,17 +57,6 @@ _SUBJECT = {
     "it": "Briefing del giorno — {clinic_name}",
     "ar": "الملخص اليومي — {clinic_name}",
 }
-
-
-async def _clinic_locale(db: AsyncSession, clinic_id: UUID) -> str:
-    # Same lookup as notifications.resolve_clinic_communication_locale,
-    # inlined to keep copilot's depends = [] (notifications is a module).
-    row = (
-        await db.execute(text("SELECT settings FROM clinics WHERE id = :id"), {"id": clinic_id})
-    ).first()
-    settings = (row.settings or {}) if row else {}
-    lang = settings.get("communication_language") if isinstance(settings, dict) else None
-    return lang or "es"
 
 
 async def _clinic_name(db: AsyncSession, clinic_id: UUID) -> str:
@@ -150,7 +139,7 @@ async def _send_for_clinic(clinic_id: UUID, today: date, sem: asyncio.Semaphore)
             row = await db.get(CopilotSettings, clinic_id)
             if row is None or not row.digest_enabled or not row.digest_recipient_user_ids:
                 return
-            locale = await _clinic_locale(db, clinic_id)
+            locale = await clinic_locale(db, clinic_id)
             clinic_name = await _clinic_name(db, clinic_id)
             subject = _SUBJECT.get(locale, _SUBJECT["es"]).format(clinic_name=clinic_name)
             # One email per recipient, each scoped to that recipient's role.

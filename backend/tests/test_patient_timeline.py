@@ -266,6 +266,24 @@ async def test_on_invoice_paid_inserts_financial(
 
 
 @pytest.mark.asyncio
+async def test_titles_follow_clinic_communication_language(
+    db_session: AsyncSession, test_clinic: Clinic, test_patient: Patient
+):
+    test_clinic.settings = {**(test_clinic.settings or {}), "communication_language": "en"}
+    await db_session.commit()
+
+    base = _base_payload(test_clinic, test_patient)
+    await timeline_events.on_invoice_paid(
+        {**base, "invoice_id": str(uuid4()), "invoice_number": "F-2026-0003", "total": "1.00"}
+    )
+    await timeline_events.on_appointment_scheduled(
+        {**base, "appointment_id": str(uuid4()), "start_time": base["occurred_at"]}
+    )
+    titles = {e.title for e in await _entries_for(db_session, test_patient.id)}
+    assert titles == {"Invoice paid: F-2026-0003", "Appointment scheduled: Consultation"}
+
+
+@pytest.mark.asyncio
 async def test_on_notification_sent_inserts_communication(
     db_session: AsyncSession, test_clinic: Clinic, test_patient: Patient
 ):

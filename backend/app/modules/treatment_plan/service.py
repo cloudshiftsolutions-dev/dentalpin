@@ -120,9 +120,7 @@ def _snapshot_sessions_from_catalog(
         amounts = [Decimal(str(s.default_price)) for s in catalog_sessions]
 
     for idx, (cs, amount) in enumerate(zip(catalog_sessions, amounts, strict=True), start=1):
-        label = None
-        if cs.labels:
-            label = cs.labels.get("es") or cs.labels.get("en") or next(iter(cs.labels.values()))
+        label = catalog_name(cs.labels) if cs.labels else None
         rows.append(
             PlannedTreatmentItemSession(
                 sequence=idx,

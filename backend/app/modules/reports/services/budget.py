@@ -9,6 +9,7 @@ from sqlalchemy import case, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.auth.models import User
+from app.core.i18n_names import catalog_name
 from app.modules.budget.models import Budget, BudgetItem
 from app.modules.catalog.models import TreatmentCatalogItem
 
@@ -182,7 +183,7 @@ class BudgetReportService:
                 select(TreatmentCatalogItem).where(TreatmentCatalogItem.id.in_(catalog_ids))
             )
             for item in result.scalars():
-                treatment_names[item.id] = item.names.get("es", item.internal_code)
+                treatment_names[item.id] = catalog_name(item.names) or item.internal_code
 
         return [
             {

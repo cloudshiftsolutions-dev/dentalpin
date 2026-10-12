@@ -10,6 +10,7 @@ from sqlalchemy.orm import selectinload
 
 from app.core.events import event_bus
 from app.core.events.types import EventType
+from app.core.i18n_names import catalog_name
 from app.modules.catalog.models import TreatmentCatalogItem, TreatmentOdontogramMapping
 from app.modules.catalog.pricing import (
     PricingTooth,
@@ -838,10 +839,7 @@ class TreatmentService:
                 "treatment_id": str(treatment_id),
                 "clinical_type": treatment.clinical_type,
                 "treatment_name": (
-                    (treatment.catalog_item.names or {}).get("es")
-                    or (treatment.catalog_item.names or {}).get("en")
-                    if treatment.catalog_item
-                    else None
+                    catalog_name(treatment.catalog_item.names) if treatment.catalog_item else None
                 ),
                 "catalog_item_id": str(treatment.catalog_item_id)
                 if treatment.catalog_item_id

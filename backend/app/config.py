@@ -102,6 +102,12 @@ class Settings(BaseSettings):
     DEMO_MODE: bool = False
     ALLOWED_ORIGINS: str = ""
 
+    # Language the backend writes into stored, human-readable copy (catalog
+    # names on invoices/plans/sessions, timeline titles fallback, copilot
+    # tool payloads). The UI translates its own strings; this only governs
+    # text resolved server-side from i18n JSONB. Upstream default is Spanish.
+    CONTENT_LOCALE: str = "es"
+
     # Rate limiting
     LOGIN_RATE_LIMIT: str = "5/minute"
     REGISTER_RATE_LIMIT: str = "3/hour"

@@ -8,6 +8,20 @@ def test_prefers_priority_order():
     assert catalog_name(names) == "Empaste"
 
 
+def test_explicit_locale_is_tried_first():
+    names = {"en": "Filling", "es": "Empaste"}
+    assert catalog_name(names, locale="en") == "Filling"
+    # Missing locale falls back to the default chain.
+    assert catalog_name(names, locale="ta") == "Empaste"
+
+
+def test_content_locale_setting_drives_default(monkeypatch):
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "CONTENT_LOCALE", "en")
+    assert catalog_name({"en": "Filling", "es": "Empaste"}) == "Filling"
+
+
 def test_arabic_only_item_resolves():
     # Items created under a core-only locale must not degrade to None.
     assert catalog_name({"ar": "تبييض الأسنان"}) == "تبييض الأسنان"
