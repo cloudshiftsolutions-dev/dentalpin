@@ -163,15 +163,20 @@ async def test_access_line_uses_route_template(caplog) -> None:
     async with AsyncClient(transport=ASGITransport(app=app), base_url="http://t") as http:
         response = await http.get("/api/v1", headers={"X-Correlation-Id": "corr_abc"})
         health = await http.get("/health")
+        unauthenticated = await http.get("/api/v1/auth/me")
+    assert unauthenticated.status_code == 401
     assert response.headers["x-correlation-id"] == "corr_abc"
     assert len(response.headers["x-request-id"]) == 16
     assert health.headers["x-correlation-id"].startswith("corr_")
 
     lines = [r for r in caplog.records if r.name == "app.access"]
-    assert len(lines) == 1, "health probes are not access-logged"
+    assert len(lines) == 2, "health probes are not access-logged"
     assert lines[0].event == "http.request.completed"
     assert lines[0].http["route"] == "/api/v1"
     assert lines[0].http["status_code"] == 200
+    # Included-router routes keep their prefix; 401 is a WARN security signal.
+    assert lines[1].http["route"] == "/api/v1/auth/me"
+    assert lines[1].levelno == logging.WARNING
 
 
 @pytest.mark.asyncio

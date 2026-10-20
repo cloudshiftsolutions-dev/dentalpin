@@ -57,6 +57,27 @@ def set_span_identity(*, tenant_id: str | UUID | None, user_id: str | UUID | Non
         span.set_attribute("user_id", str(user_id))
 
 
+def route_template(request) -> str:
+    """Full route template (``/api/v1/patients/{patient_id}``) for a request.
+
+    Since FastAPI 0.137 an included router's routes only know their path
+    relative to that router, so ``scope["route"].path`` misses the prefix.
+    The server span already carries the full template; without tracing,
+    match the request against the flattened route contexts.
+    """
+    attrs = getattr(trace.get_current_span(), "attributes", None) or {}
+    if attrs.get("http.route"):
+        return str(attrs["http.route"])
+    from fastapi.routing import iter_route_contexts
+    from starlette.routing import Match
+
+    for route in iter_route_contexts(request.app.routes):
+        match, _ = route.matches(request.scope)
+        if match == Match.FULL:
+            return getattr(route, "path", None) or "unmatched"
+    return "unmatched"
+
+
 def current_trace_id() -> str | None:
     ctx = trace.get_current_span().get_span_context()
     return format(ctx.trace_id, "032x") if ctx.is_valid else None

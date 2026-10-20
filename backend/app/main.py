@@ -40,7 +40,7 @@ from app.observability import (
     setup_telemetry,
     shutdown_telemetry,
 )
-from app.observability.context import FIELDS, is_safe_id, safe_id, set_fields
+from app.observability.context import FIELDS, is_safe_id, route_template, safe_id, set_fields
 
 logger = logging.getLogger(__name__)
 access_logger = logging.getLogger("app.access")
@@ -215,7 +215,7 @@ def _log_access(request: Request, status: int, start: float) -> None:
         if status in (401, 403, 429)
         else logging.INFO
     )
-    route = getattr(request.scope.get("route"), "path", None) or "unmatched"
+    route = route_template(request)
     access_logger.log(
         level,
         "HTTP request completed",
