@@ -1,6 +1,7 @@
 """FastAPI application entry point."""
 
 import logging
+import time
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Annotated
@@ -8,6 +9,7 @@ from typing import Annotated
 from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from opentelemetry import trace
 from slowapi import _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 from slowapi.middleware import SlowAPIMiddleware
@@ -23,7 +25,6 @@ from app.core.log_context import (
     reset_request_context,
     set_request_context,
     setup_error_tracking,
-    setup_logging,
 )
 from app.core.plugins.loader import mount_modules, register_discovered
 from app.core.plugins.processor import PendingProcessor
@@ -31,8 +32,23 @@ from app.core.plugins.service import ModuleService
 from app.core.scheduler import init_scheduler, shutdown_scheduler
 from app.core.schemas import ErrorResponse
 from app.database import async_session_maker, engine, get_db
+from app.observability import (
+    current_trace_id,
+    instrument_app,
+    report_error,
+    setup_logging,
+    setup_telemetry,
+    shutdown_telemetry,
+)
+from app.observability.context import FIELDS, is_safe_id, safe_id, set_fields
 
 logger = logging.getLogger(__name__)
+access_logger = logging.getLogger("app.access")
+
+# Before the app exists: instrumentation must wrap it, and startup lines
+# should already be JSON.
+setup_logging()
+setup_telemetry()
 
 
 @asynccontextmanager
@@ -113,6 +129,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     # Shutdown
     shutdown_scheduler()
     await engine.dispose()
+    shutdown_telemetry()
 
 
 app = FastAPI(
@@ -151,25 +168,68 @@ app.add_middleware(
 )
 
 
+_UNLOGGED_PATHS = ("/health",)
+
+
 @app.middleware("http")
 async def request_id_middleware(request: Request, call_next):
-    """Bind ``request_id`` for the lifetime of one HTTP request.
+    """Bind ``request_id`` / ``correlation_id`` for one HTTP request.
 
-    Accepts an inbound ``X-Request-Id`` so a load balancer / client
-    can correlate traces; otherwise mints a fresh short id. Echoes
-    the value back on the response (success or error) so the caller
-    can grep server logs. ``clinic_id`` / ``user_id`` are bound later
-    by the auth dependency once they are known.
+    Accepts inbound ``X-Request-Id`` / ``X-Correlation-Id`` when they are
+    safe to log; otherwise mints fresh ones. Echoes both on the response
+    (success or error) so the caller can quote them. ``clinic_id`` /
+    ``user_id`` are bound later by the auth dependency once known. Writes
+    one structured access line per request and reports unhandled errors
+    once, with ``trace_id`` / ``request_id`` in the 500 body.
     """
     incoming = request.headers.get("x-request-id")
-    rid = incoming if incoming and len(incoming) <= 64 else new_request_id()
+    rid = incoming if is_safe_id(incoming) else new_request_id()
+    cid = safe_id(request.headers.get("x-correlation-id"), "corr")
     tokens = set_request_context(request_id=rid)
+    fields_token = set_fields(correlation_id=cid)
+    span = trace.get_current_span()
+    span.set_attribute("request_id", rid)
+    span.set_attribute("correlation_id", cid)
+    start = time.perf_counter()
     try:
-        response = await call_next(request)
+        try:
+            response = await call_next(request)
+        except Exception as exc:
+            report_error(exc, "Unhandled request error")
+            response = _internal_error_response(request, rid, exc)
+        response.headers["X-Request-Id"] = rid
+        response.headers["X-Correlation-Id"] = cid
+        if not request.url.path.startswith(_UNLOGGED_PATHS):
+            _log_access(request, response.status_code, start)
     finally:
+        FIELDS.reset(fields_token)
         reset_request_context(tokens)
-    response.headers["X-Request-Id"] = rid
     return response
+
+
+def _log_access(request: Request, status: int, start: float) -> None:
+    level = (
+        logging.ERROR
+        if status >= 500
+        else logging.WARNING
+        if status in (401, 403, 429)
+        else logging.INFO
+    )
+    route = getattr(request.scope.get("route"), "path", None) or "unmatched"
+    access_logger.log(
+        level,
+        "HTTP request completed",
+        extra={
+            "event": "http.request.completed",
+            "http": {
+                "method": request.method,
+                "route": route,
+                "status_code": status,
+                "duration_ms": round((time.perf_counter() - start) * 1000),
+                "user_agent": request.headers.get("user-agent"),
+            },
+        },
+    )
 
 
 def _cors_headers(request: Request) -> dict[str, str]:
@@ -207,25 +267,32 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     )
 
 
-@app.exception_handler(Exception)
-async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
-    """Global exception handler for unhandled errors."""
-    logger.exception("Unhandled exception", exc_info=exc)
-    if settings.ENVIRONMENT == "development":
-        error_response = ErrorResponse(
-            message=str(exc),
-            errors=[str(exc)],
-        )
+def _internal_error_response(
+    request: Request, request_id: str | None, exc: Exception | None = None
+) -> JSONResponse:
+    if exc is not None and settings.ENVIRONMENT == "development":
+        error_response = ErrorResponse(message=str(exc), errors=[str(exc)])
     else:
-        error_response = ErrorResponse(
-            message="Internal server error",
-            errors=[],
-        )
+        error_response = ErrorResponse(message="Internal server error", errors=[])
     return JSONResponse(
         status_code=500,
-        content=error_response.model_dump(),
+        content={
+            **error_response.model_dump(),
+            "trace_id": current_trace_id(),
+            "request_id": request_id,
+        },
         headers=_cors_headers(request),
     )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Errors that escape the request middleware (it reports the rest)."""
+    report_error(exc, "Unhandled exception")
+    return _internal_error_response(request, None, exc)
+
+
+instrument_app(app)
 
 
 # Mount auth router

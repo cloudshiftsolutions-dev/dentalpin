@@ -39,7 +39,20 @@ services:
       ALLOWED_ORIGINS: ${PUBLIC_URL}
       STORAGE_BACKEND: local
       STORAGE_LOCAL_PATH: /app/storage
-      SENTRY_DSN: ${SENTRY_DSN:-}
+      # Observability: JSON logs on stdout always; logs, traces and metrics
+      # go to OpenObserve (stream "dentalpin") only when the endpoint is set.
+      # OTEL_EXPORTER_OTLP_HEADERS is a secret (ingest service account).
+      APP_NAME: dentalpin
+      APP_ENV: production
+      APP_VERSION: ${APP_VERSION:-2.7.1-cloudshift}
+      LOG_FORMAT: json
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      OTEL_SERVICE_NAME: dentalpin-api
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-}
+      OTEL_EXPORTER_OTLP_HEADERS: ${OTEL_EXPORTER_OTLP_HEADERS:-}
+      OTEL_EXPORTER_OTLP_PROTOCOL: http/protobuf
+      OTEL_TRACES_SAMPLER: parentbased_traceidratio
+      OTEL_TRACES_SAMPLER_ARG: ${OTEL_TRACES_SAMPLER_ARG:-1.0}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       # Any OpenAI-compatible gateway (e.g. Token Harbor); empty = api.openai.com.
       OPENAI_BASE_URL: ${OPENAI_BASE_URL:-}

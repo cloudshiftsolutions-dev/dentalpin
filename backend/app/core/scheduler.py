@@ -13,6 +13,7 @@ from apscheduler.triggers.interval import IntervalTrigger
 from app.config import settings
 from app.core.plugins.registry import module_registry
 from app.core.scheduling import ScheduledJob
+from app.observability.jobs import traced_job
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +60,7 @@ def init_scheduler() -> None:
                 logger.info("Scheduler job '%s' already exists, skipping", job.id)
                 continue
             scheduler.add_job(
-                job.func,
+                traced_job(job.id, job.func),
                 _build_trigger(job),
                 id=job.id,
                 name=job.name,

@@ -16,6 +16,7 @@ from app.config import settings
 from app.core.auth.rbac import has_permission_for
 from app.core.log_context import set_request_context
 from app.database import get_db
+from app.observability.context import set_span_identity
 
 from .cookies import ACCESS_COOKIE, CSRF_COOKIE, CSRF_HEADER, SAFE_METHODS
 from .models import Clinic, ClinicMembership, User
@@ -162,6 +163,7 @@ async def get_clinic_context(
     # them automatically (request_id was set by the middleware). Not
     # reset — the middleware drops the whole context at request end.
     set_request_context(clinic_id=membership.clinic.id, user_id=current_user.id)
+    set_span_identity(tenant_id=membership.clinic.id, user_id=current_user.id)
 
     return ClinicContext(
         user=current_user,
