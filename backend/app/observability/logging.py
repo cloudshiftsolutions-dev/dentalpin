@@ -43,6 +43,7 @@ _RESERVED = frozenset(vars(logging.makeLogRecord({}))) | {
     "request_id",
     "clinic_id",
     "user_id",
+    "color_message",  # uvicorn's ANSI-coloured copy of the message
 }
 # Kept out of OTLP attributes: they are the record body, severity and the
 # span context the SDK attaches on its own.
@@ -155,6 +156,9 @@ def setup_logging() -> None:
     # outbound calls are traced as spans with scrubbed URLs instead.
     for name in ("httpx", "httpcore"):
         logging.getLogger(name).setLevel(logging.WARNING)
+    # Two INFO lines per run for jobs firing every 45 s; each run already
+    # has a span and metrics (app.observability.jobs).
+    logging.getLogger("apscheduler.executors").setLevel(logging.WARNING)
     for name in ("uvicorn", "uvicorn.error"):
         logging.getLogger(name).handlers = []
         logging.getLogger(name).propagate = True
