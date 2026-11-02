@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "أيام",
+      "week": "أسابيع",
+      "month": "أشهر"
+    },
     "title": "استدعاءات الفحص",
     "callList": "قائمة الاتصال",
     "noRecallsThisMonth": "لا توجد استدعاءات معلقة هذا الشهر",
@@ -79,6 +84,16 @@
       "month": "الشهر المستهدف",
       "targetMonth": "الشهر المستهدف",
       "preciseDate": "اختر يومًا محددًا",
+      "recallOn": "التذكير في",
+      "customInterval": "التذكير بعد",
+      "intervalValue": "عدد الأيام أو الأسابيع أو الأشهر",
+      "intervalUnit": "وحدة الفاصل",
+      "intervalRange": "أدخل عددًا صحيحًا من 1 إلى {max} ({unit}).",
+      "shortcuts": "فواصل سريعة",
+      "shortcut": {
+        "week": "+{n} أسبوع",
+        "month": "+{n} شهر"
+      },
       "priority": "الأولوية",
       "assigned": "الطبيب المسؤول",
       "note": "ملاحظة داخلية",
@@ -113,7 +128,11 @@
     "settings": {
       "title": "استدعاءات الفحص",
       "description": "الفواصل الافتراضية + الربط بفئة العلاج",
-      "intervals": "الفواصل الافتراضية (بالأشهر)",
+      "intervals": "الفواصل الافتراضية",
+      "intervalsHelp": "يملأ تاريخ التذكير مسبقًا عند اختيار هذا السبب. استخدم الأيام أو الأسابيع للمتابعات القصيرة؛ 0 يعني عدم وجود قيمة افتراضية.",
+      "intervalRange": "أدخل عددًا صحيحًا من 0 إلى {max} ({unit}).",
+      "intervalValue": "فاصل {reason}",
+      "intervalUnit": "وحدة فاصل {reason}",
       "categoryMap": "العلاج ← السبب",
       "categoryKeyPlaceholder": "مفتاح فئة الكتالوج",
       "autoSuggest": "اقتراح استدعاء عند اكتمال علاج",

@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- fix(DENTALPIN-13): recalls shorter than a month. Default intervals in
+  settings take a unit (days / weeks / months), stored in the new
+  `recall_settings.reason_interval_units` column (migration `rec_0002`);
+  a reason without a unit still counts in months, so existing settings
+  are unchanged. The Set recall modal gains `+1 wk` / `+2 wk` shortcuts
+  and an "In N days / weeks / months" field, and opens at the chosen
+  reason's configured interval instead of always next month. Day and
+  week intervals pin an exact `due_date`; months keep the monthly bucket.
+  `GET /suggestions/next` adds `due_date`, `interval_value` and
+  `interval_unit` (`interval_months` stays, 0 for non-month units).
+- fix(DENTALPIN-13): an exact `due_date` now decides `due_month` on create
+  and update, so a recall can no longer sit in a month that contradicts
+  its own date; snooze moves the exact date along with the month.
+
 - feat(#232): sidebar entry grouped under the Clinical header (`nav.section` "clinical").
 - fix(#126): de/it/pl locale parity with en (confirms.cancel / confirms.done).
 

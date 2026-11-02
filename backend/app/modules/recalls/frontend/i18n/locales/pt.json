@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "Dias",
+      "week": "Semanas",
+      "month": "Meses"
+    },
     "title": "Reconvocações",
     "callList": "Lista de chamadas",
     "noRecallsThisMonth": "Sem reconvocações pendentes este mês",
@@ -79,6 +84,16 @@
       "month": "Mês alvo",
       "targetMonth": "Mês alvo",
       "preciseDate": "Escolher um dia específico",
+      "recallOn": "Lembrete a",
+      "customInterval": "Lembrar daqui a",
+      "intervalValue": "Número de dias, semanas ou meses",
+      "intervalUnit": "Unidade do intervalo",
+      "intervalRange": "Introduza um número inteiro de 1 a {max} ({unit}).",
+      "shortcuts": "Intervalos rápidos",
+      "shortcut": {
+        "week": "+{n} sem",
+        "month": "+{n} m"
+      },
       "priority": "Prioridade",
       "assigned": "Profissional responsável",
       "note": "Nota interna",
@@ -113,7 +128,11 @@
     "settings": {
       "title": "Reconvocações",
       "description": "Intervalos predefinidos + correspondência com categorias de tratamento",
-      "intervals": "Intervalos predefinidos (meses)",
+      "intervals": "Intervalos predefinidos",
+      "intervalsHelp": "Preenche a data do lembrete quando este motivo é escolhido. Use dias ou semanas para seguimentos curtos; 0 significa sem valor predefinido.",
+      "intervalRange": "Introduza um número inteiro de 0 a {max} ({unit}).",
+      "intervalValue": "Intervalo: {reason}",
+      "intervalUnit": "Unidade do intervalo: {reason}",
       "categoryMap": "Tratamento → motivo",
       "categoryKeyPlaceholder": "chave da categoria do catálogo",
       "autoSuggest": "Sugerir uma reconvocação quando um tratamento é concluído",

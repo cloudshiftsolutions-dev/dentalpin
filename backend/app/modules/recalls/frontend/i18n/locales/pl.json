@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "Dni",
+      "week": "Tygodnie",
+      "month": "Miesiące"
+    },
     "title": "Wizyty kontrolne",
     "callList": "Lista do obdzwonienia",
     "noRecallsThisMonth": "Brak oczekujących wizyt kontrolnych w tym miesiącu",
@@ -75,6 +80,16 @@
       "month": "Docelowy miesiąc",
       "targetMonth": "Docelowy miesiąc",
       "preciseDate": "Wybierz konkretny dzień",
+      "recallOn": "Przypomnienie dnia",
+      "customInterval": "Przypomnij za",
+      "intervalValue": "Liczba dni, tygodni lub miesięcy",
+      "intervalUnit": "Jednostka odstępu",
+      "intervalRange": "Wpisz liczbę całkowitą od 1 do {max} ({unit}).",
+      "shortcuts": "Szybkie odstępy",
+      "shortcut": {
+        "week": "+{n} tyg",
+        "month": "+{n} mies"
+      },
       "priority": "Priorytet",
       "assigned": "Przypisany lekarz",
       "note": "Notatka wewnętrzna",
@@ -109,7 +124,11 @@
     "settings": {
       "title": "Wizyty kontrolne",
       "description": "Domyślne odstępy + mapowanie kategorii zabiegów",
-      "intervals": "Domyślne odstępy (miesiące)",
+      "intervals": "Domyślne odstępy",
+      "intervalsHelp": "Uzupełnia datę przypomnienia po wybraniu tego powodu. Dla krótkich kontroli użyj dni lub tygodni; 0 oznacza brak wartości domyślnej.",
+      "intervalRange": "Wpisz liczbę całkowitą od 0 do {max} ({unit}).",
+      "intervalValue": "Odstęp: {reason}",
+      "intervalUnit": "Jednostka odstępu: {reason}",
       "categoryMap": "Zabieg → powód",
       "categoryKeyPlaceholder": "klucz kategorii katalogu",
       "autoSuggest": "Sugeruj wizytę kontrolną po zakończeniu zabiegu",

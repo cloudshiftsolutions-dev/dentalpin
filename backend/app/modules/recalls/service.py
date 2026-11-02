@@ -55,6 +55,25 @@ def _add_months(d: date, months: int) -> date:
     return date(year, month + 1, 1)
 
 
+def interval_due(start: date, value: int, unit: str) -> tuple[date, date | None]:
+    """``(due_month, due_date)`` for a recall ``value`` ``unit``s after ``start``.
+
+    Months keep the monthly-bucket behaviour (day-1, no exact day).
+    Days and weeks are shorter than the bucket, so they pin an exact
+    ``due_date`` and file the recall under that date's month.
+    """
+    if unit == "month":
+        return _add_months(start, value), None
+    days = value * 7 if unit == "week" else value
+    due = start + timedelta(days=days)
+    return _normalize_due_month(due), due
+
+
+def _due_month_for(due_month: date, due_date: date | None) -> date:
+    """An exact ``due_date`` decides the month bucket it is listed under."""
+    return _normalize_due_month(due_date or due_month)
+
+
 def _build_event_payload(recall: Recall) -> dict[str, Any]:
     return {
         "recall_id": str(recall.id),
@@ -265,7 +284,7 @@ class RecallService:
         existing = await RecallService.find_pending_for(
             db, clinic_id, data["patient_id"], data["reason"]
         )
-        normalised_due_month = _normalize_due_month(data["due_month"])
+        normalised_due_month = _due_month_for(data["due_month"], data.get("due_date"))
 
         if existing:
             existing.due_month = normalised_due_month
@@ -312,6 +331,7 @@ class RecallService:
             recall.due_month = _normalize_due_month(data["due_month"])
         if "due_date" in data:
             recall.due_date = data["due_date"]
+        recall.due_month = _due_month_for(recall.due_month, recall.due_date)
         if "reason" in data and data["reason"]:
             recall.reason = data["reason"]
         if "reason_note" in data:
@@ -336,6 +356,11 @@ class RecallService:
         if not recall:
             return None
         recall.due_month = _add_months(recall.due_month, months)
+        if recall.due_date:
+            # Same day N months on, clamped to the end of a shorter month.
+            target = recall.due_month
+            last_day = (_add_months(target, 1) - timedelta(days=1)).day
+            recall.due_date = target.replace(day=min(recall.due_date.day, last_day))
         if reason_note:
             stamp = (
                 datetime.now(UTC).strftime("%Y-%m-%d")
@@ -525,12 +550,16 @@ class RecallService:
         interval = settings.reason_intervals.get(reason)
         if not interval:
             return None
-        due_month = _add_months(date.today(), int(interval))
+        unit = (settings.reason_interval_units or {}).get(reason, "month")
+        due_month, due_date = interval_due(date.today(), int(interval), unit)
         return {
             "patient_id": patient_id,
             "reason": reason,
             "due_month": due_month,
-            "interval_months": int(interval),
+            "due_date": due_date,
+            "interval_value": int(interval),
+            "interval_unit": unit,
+            "interval_months": int(interval) if unit == "month" else 0,
             "treatment_category_key": treatment_category_key,
             "treatment_id": treatment_id,
             "matched_setting": True,
@@ -630,6 +659,7 @@ class RecallSettingsService:
         settings = RecallSettings(
             clinic_id=clinic_id,
             reason_intervals=dict(DEFAULT_REASON_INTERVALS),
+            reason_interval_units={},
             category_to_reason=dict(DEFAULT_CATEGORY_TO_REASON),
             auto_suggest_on_treatment_completed=True,
             auto_link_on_appointment_scheduled=True,
@@ -647,6 +677,11 @@ class RecallSettingsService:
         settings = await RecallSettingsService.get_or_create(db, clinic_id)
         if "reason_intervals" in data and data["reason_intervals"] is not None:
             settings.reason_intervals = data["reason_intervals"]
+        if "reason_interval_units" in data and data["reason_interval_units"] is not None:
+            settings.reason_interval_units = {
+                **(settings.reason_interval_units or {}),
+                **data["reason_interval_units"],
+            }
         if "category_to_reason" in data and data["category_to_reason"] is not None:
             settings.category_to_reason = data["category_to_reason"]
         if (
@@ -679,4 +714,5 @@ __all__ = [
     "RecallSettingsService",
     "_add_months",
     "_normalize_due_month",
+    "interval_due",
 ]

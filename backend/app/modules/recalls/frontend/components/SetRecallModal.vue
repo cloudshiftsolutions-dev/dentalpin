@@ -1,6 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
-import type { RecallReason, RecallPriority, Recall } from '../composables/useRecalls'
+import type { RecallIntervalUnit, RecallReason, RecallPriority, RecallSettings, Recall } from '../composables/useRecalls'
+import {
+  isValidRecallInterval,
+  RECALL_INTERVAL_MAX,
+  RECALL_INTERVAL_UNITS,
+  recallMonthOf,
+  recallTimingFromInterval
+} from '../utils/recallInterval'
 import { errorDetail } from '~~/app/utils/error'
 
 interface Props {
@@ -39,31 +46,107 @@ const note = ref<string>(props.initialNote ?? '')
 const assignedProfessionalId = ref<string | null>(props.initialAssignedProfessionalId ?? null)
 
 function defaultDueMonth(): string {
-  const today = new Date()
-  // Next month, day 1.
-  const d = new Date(today.getFullYear(), today.getMonth() + 1, 1)
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  return `${yyyy}-${mm}-01`
+  return recallTimingFromInterval(1, 'month').dueMonth
 }
 
-function shiftMonths(offset: number) {
-  const today = new Date()
-  const d = new Date(today.getFullYear(), today.getMonth() + offset, 1)
-  const yyyy = d.getFullYear()
-  const mm = String(d.getMonth() + 1).padStart(2, '0')
-  dueMonth.value = `${yyyy}-${mm}-01`
+// --- When -------------------------------------------------------------------
+// "In N units" drives the date. Shortcuts and the reason's configured
+// default fill it in; picking a month or an exact day overrides it.
+const intervalValue = ref<number | null>(1)
+const intervalUnit = ref<RecallIntervalUnit>('month')
+// Once the user sets the timing, changing the reason must not reset it.
+const timingTouched = ref(false)
+const showExactDate = ref(false)
+
+// Settings are clinic-wide and rarely change; fetched once per modal.
+let settingsRequest: Promise<RecallSettings | null> | null = null
+const reasonDefaults = ref<RecallSettings | null>(null)
+
+async function loadReasonDefaults() {
+  settingsRequest ??= recallsApi.getSettings().then(res => res.data).catch(() => null)
+  reasonDefaults.value = await settingsRequest
 }
 
-watch(() => props.open, (v) => {
+function applyInterval(value: number, unit: RecallIntervalUnit) {
+  intervalValue.value = value
+  intervalUnit.value = unit
+  const timing = recallTimingFromInterval(value, unit)
+  dueMonth.value = timing.dueMonth
+  dueDate.value = timing.dueDate
+  showExactDate.value = Boolean(timing.dueDate)
+}
+
+function applyReasonDefault() {
+  if (timingTouched.value || props.initialDueMonth) return
+  const value = reasonDefaults.value?.reason_intervals[reason.value]
+  const unit = reasonDefaults.value?.reason_interval_units?.[reason.value] ?? 'month'
+  if (typeof value === 'number' && isValidRecallInterval(value, unit)) applyInterval(value, unit)
+  else applyInterval(1, 'month')
+}
+
+function chooseInterval(value: number, unit: RecallIntervalUnit) {
+  timingTouched.value = true
+  applyInterval(value, unit)
+}
+
+function onIntervalValueInput(raw: string | number | null | undefined) {
+  timingTouched.value = true
+  const value = raw === '' || raw === null || raw === undefined ? null : Number(raw)
+  intervalValue.value = value
+  if (value !== null && isValidRecallInterval(value, intervalUnit.value)) applyInterval(value, intervalUnit.value)
+}
+
+function onIntervalUnitChange(unit: RecallIntervalUnit) {
+  timingTouched.value = true
+  intervalUnit.value = unit
+  const value = intervalValue.value
+  if (value !== null && isValidRecallInterval(value, unit)) applyInterval(value, unit)
+}
+
+const intervalError = computed(() => {
+  const value = intervalValue.value
+  if (value === null || isValidRecallInterval(value, intervalUnit.value)) return undefined
+  return t('recalls.modal.intervalRange', {
+    max: RECALL_INTERVAL_MAX[intervalUnit.value],
+    unit: t(`recalls.units.${intervalUnit.value}`)
+  })
+})
+
+function onMonthPicked(month: string) {
+  timingTouched.value = true
+  intervalValue.value = null
+  dueMonth.value = month
+  // An exact day outside the chosen month would contradict it.
+  if (dueDate.value && recallMonthOf(dueDate.value) !== month) dueDate.value = ''
+}
+
+function onExactDateInput(value: string | number | null | undefined) {
+  timingTouched.value = true
+  intervalValue.value = null
+  dueDate.value = String(value ?? '')
+  if (dueDate.value) dueMonth.value = recallMonthOf(dueDate.value)
+}
+
+watch(reason, applyReasonDefault)
+
+watch(() => props.open, async (v) => {
   if (!v) return
   reason.value = props.initialReason
   priority.value = props.initialPriority
-  dueMonth.value = props.initialDueMonth ?? defaultDueMonth()
-  dueDate.value = ''
+  timingTouched.value = false
+  if (props.initialDueMonth) {
+    intervalValue.value = null
+    dueMonth.value = props.initialDueMonth
+    dueDate.value = ''
+    showExactDate.value = false
+  } else {
+    applyInterval(1, 'month')
+  }
   note.value = props.initialNote ?? ''
   assignedProfessionalId.value = props.initialAssignedProfessionalId ?? null
-})
+  await loadReasonDefaults()
+  applyReasonDefault()
+}, { immediate: true })
 
 interface ReasonMeta {
   value: RecallReason
@@ -87,32 +170,45 @@ const priorities = computed(() => [
   { value: 'high' as RecallPriority, label: t('recalls.priority.high'), color: 'error' as const }
 ])
 
-const dueMonthLabel = computed(() => {
+const dueSummary = computed(() => {
+  if (dueDate.value) {
+    const d = new Date(`${dueDate.value}T00:00:00`)
+    const label = new Intl.DateTimeFormat(locale.value, { dateStyle: 'full' }).format(d)
+    return { prefix: t('recalls.modal.recallOn'), label }
+  }
   const iso = dueMonth.value.length === 7 ? `${dueMonth.value}-01` : dueMonth.value
-  const d = new Date(iso)
-  return new Intl.DateTimeFormat(locale.value, {
-    year: 'numeric',
-    month: 'long'
-  }).format(d)
+  const label = new Intl.DateTimeFormat(locale.value, { year: 'numeric', month: 'long' })
+    .format(new Date(`${iso}T00:00:00`))
+  return { prefix: t('recalls.modal.targetMonth'), label }
 })
 
-const monthShortcuts = computed(() => [
-  { offset: 1, label: '+1m' },
-  { offset: 3, label: '+3m' },
-  { offset: 6, label: '+6m' },
-  { offset: 12, label: '+12m' }
-])
+const shortcuts: { value: number, unit: RecallIntervalUnit }[] = [
+  { value: 1, unit: 'week' },
+  { value: 2, unit: 'week' },
+  { value: 1, unit: 'month' },
+  { value: 3, unit: 'month' },
+  { value: 6, unit: 'month' },
+  { value: 12, unit: 'month' }
+]
 
-function isShortcutActive(offset: number): boolean {
-  const today = new Date()
-  const target = new Date(today.getFullYear(), today.getMonth() + offset, 1)
-  const yyyy = target.getFullYear()
-  const mm = String(target.getMonth() + 1).padStart(2, '0')
-  return dueMonth.value === `${yyyy}-${mm}-01`
+function shortcutLabel(s: { value: number, unit: RecallIntervalUnit }): string {
+  return t(`recalls.modal.shortcut.${s.unit}`, { n: s.value })
 }
+
+function isShortcutActive(s: { value: number, unit: RecallIntervalUnit }): boolean {
+  return intervalValue.value === s.value && intervalUnit.value === s.unit
+}
+
+const unitOptions = computed(() =>
+  RECALL_INTERVAL_UNITS.map(unit => ({ value: unit, label: t(`recalls.units.${unit}`) }))
+)
 
 async function save() {
   if (isSubmitting.value) return
+  if (intervalError.value) {
+    toast.add({ title: intervalError.value, color: 'warning' })
+    return
+  }
   isSubmitting.value = true
   try {
     const month = dueMonth.value || defaultDueMonth()
@@ -183,29 +279,76 @@ function close() {
           </div>
         </section>
 
-        <!-- Step 2: When — month picker + quick shortcuts -->
+        <!-- Step 2: When — "in N units", shortcuts, or a month / exact day -->
         <section>
           <label class="block text-caption uppercase tracking-wide text-subtle mb-2">
             {{ t('recalls.modal.when') }}
           </label>
-          <div class="flex flex-wrap items-center gap-2 mb-2">
+          <div
+            class="flex flex-wrap items-center gap-2 mb-3"
+            role="group"
+            :aria-label="t('recalls.modal.shortcuts')"
+          >
             <UButton
-              v-for="s in monthShortcuts"
-              :key="s.offset"
+              v-for="s in shortcuts"
+              :key="`${s.value}-${s.unit}`"
               size="xs"
-              :color="isShortcutActive(s.offset) ? 'primary' : 'neutral'"
-              :variant="isShortcutActive(s.offset) ? 'soft' : 'outline'"
-              @click="shiftMonths(s.offset)"
+              :color="isShortcutActive(s) ? 'primary' : 'neutral'"
+              :variant="isShortcutActive(s) ? 'soft' : 'outline'"
+              :aria-pressed="isShortcutActive(s)"
+              @click="chooseInterval(s.value, s.unit)"
             >
-              {{ s.label }}
+              {{ shortcutLabel(s) }}
             </UButton>
           </div>
-          <MonthPickerDropdown v-model="dueMonth" />
-          <p class="text-caption text-subtle mt-1.5">
-            {{ t('recalls.modal.targetMonth') }}: <span class="text-default font-medium">{{ dueMonthLabel }}</span>
+
+          <UFormField
+            :label="t('recalls.modal.customInterval')"
+            :error="intervalError"
+          >
+            <div class="flex gap-2">
+              <UInput
+                :model-value="intervalValue ?? undefined"
+                type="number"
+                inputmode="numeric"
+                min="1"
+                :max="RECALL_INTERVAL_MAX[intervalUnit]"
+                step="1"
+                class="w-24 shrink-0"
+                :aria-label="t('recalls.modal.intervalValue')"
+                @update:model-value="onIntervalValueInput"
+              />
+              <USelect
+                :model-value="intervalUnit"
+                :items="unitOptions"
+                value-key="value"
+                label-key="label"
+                class="flex-1 min-w-0"
+                :aria-label="t('recalls.modal.intervalUnit')"
+                @update:model-value="(v) => onIntervalUnitChange(v as RecallIntervalUnit)"
+              />
+            </div>
+          </UFormField>
+
+          <div class="mt-3">
+            <MonthPickerDropdown
+              :model-value="dueMonth"
+              @update:model-value="onMonthPicked"
+            />
+          </div>
+
+          <p
+            class="text-caption text-subtle mt-1.5"
+            aria-live="polite"
+          >
+            {{ dueSummary.prefix }}: <span class="text-default font-medium">{{ dueSummary.label }}</span>
           </p>
 
-          <details class="mt-3 group">
+          <details
+            class="mt-3 group"
+            :open="showExactDate"
+            @toggle="showExactDate = ($event.target as HTMLDetailsElement).open"
+          >
             <summary class="flex items-center gap-1 text-caption text-subtle cursor-pointer hover:text-default select-none">
               <UIcon
                 name="i-lucide-chevron-right"
@@ -215,9 +358,11 @@ function close() {
             </summary>
             <div class="mt-2">
               <UInput
-                v-model="dueDate"
+                :model-value="dueDate"
                 type="date"
                 class="w-full"
+                :aria-label="t('recalls.modal.preciseDate')"
+                @update:model-value="onExactDateInput"
               />
             </div>
           </details>

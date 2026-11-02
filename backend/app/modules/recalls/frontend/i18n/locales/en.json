@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "Days",
+      "week": "Weeks",
+      "month": "Months"
+    },
     "title": "Recalls",
     "callList": "Call list",
     "noRecallsThisMonth": "No pending recalls this month",
@@ -79,6 +84,16 @@
       "month": "Target month",
       "targetMonth": "Target month",
       "preciseDate": "Pick a specific day",
+      "recallOn": "Recall on",
+      "customInterval": "Recall in",
+      "intervalValue": "Number of days, weeks or months",
+      "intervalUnit": "Interval unit",
+      "intervalRange": "Enter a whole number from 1 to {max} ({unit}).",
+      "shortcuts": "Quick intervals",
+      "shortcut": {
+        "week": "+{n} wk",
+        "month": "+{n} mo"
+      },
       "priority": "Priority",
       "assigned": "Assigned professional",
       "note": "Internal note",
@@ -113,7 +128,11 @@
     "settings": {
       "title": "Recalls",
       "description": "Default intervals + treatment-category mapping",
-      "intervals": "Default intervals (months)",
+      "intervals": "Default intervals",
+      "intervalsHelp": "Pre-fills the recall date when this reason is chosen. Use days or weeks for short follow-ups; 0 means no default.",
+      "intervalRange": "Enter a whole number from 0 to {max} ({unit}).",
+      "intervalValue": "{reason} interval",
+      "intervalUnit": "{reason} interval unit",
       "categoryMap": "Treatment → reason",
       "categoryKeyPlaceholder": "catalog category key",
       "autoSuggest": "Suggest a recall when a treatment is completed",

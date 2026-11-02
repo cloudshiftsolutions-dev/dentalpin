@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "Jours",
+      "week": "Semaines",
+      "month": "Mois"
+    },
     "title": "Rappels",
     "callList": "Liste d'appels",
     "noRecallsThisMonth": "Aucun rappel en attente ce mois-ci",
@@ -79,6 +84,16 @@
       "month": "Mois cible",
       "targetMonth": "Mois cible",
       "preciseDate": "Choisir un jour précis",
+      "recallOn": "Rappel le",
+      "customInterval": "Rappeler dans",
+      "intervalValue": "Nombre de jours, semaines ou mois",
+      "intervalUnit": "Unité de l'intervalle",
+      "intervalRange": "Saisissez un nombre entier de 1 à {max} ({unit}).",
+      "shortcuts": "Intervalles rapides",
+      "shortcut": {
+        "week": "+{n} sem",
+        "month": "+{n} mois"
+      },
       "priority": "Priorité",
       "assigned": "Professionnel assigné",
       "note": "Note interne",
@@ -113,7 +128,11 @@
     "settings": {
       "title": "Rappels",
       "description": "Intervalles par défaut + correspondance catégorie de traitement",
-      "intervals": "Intervalles par défaut (mois)",
+      "intervals": "Intervalles par défaut",
+      "intervalsHelp": "Préremplit la date du rappel lorsque ce motif est choisi. Utilisez des jours ou des semaines pour les suivis courts ; 0 signifie aucune valeur par défaut.",
+      "intervalRange": "Saisissez un nombre entier de 0 à {max} ({unit}).",
+      "intervalValue": "Intervalle : {reason}",
+      "intervalUnit": "Unité de l'intervalle : {reason}",
       "categoryMap": "Traitement → motif",
       "categoryKeyPlaceholder": "clé de catégorie du catalogue",
       "autoSuggest": "Suggérer un rappel lorsqu'un traitement est terminé",

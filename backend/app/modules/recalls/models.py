@@ -66,6 +66,8 @@ STATUSES = (
 
 CHANNELS = ("phone", "whatsapp", "sms", "email")
 
+INTERVAL_UNITS = ("day", "week", "month")
+
 OUTCOMES = (
     "no_answer",
     "voicemail",
@@ -171,7 +173,10 @@ class RecallSettings(Base):
 
     JSONB columns hold:
 
-    * ``reason_intervals`` — ``{reason: months}`` (e.g. ``{"hygiene": 6}``).
+    * ``reason_intervals`` — ``{reason: count}`` (e.g. ``{"hygiene": 6}``).
+    * ``reason_interval_units`` — ``{reason: "day" | "week" | "month"}``.
+      A reason missing here counts in months, which is how every
+      interval was stored before units existed.
     * ``category_to_reason`` — ``{catalog_category_key: reason}`` (e.g.
       ``{"preventivo": "hygiene"}``).
 
@@ -184,6 +189,7 @@ class RecallSettings(Base):
         UUID(as_uuid=True), ForeignKey("clinics.id"), primary_key=True
     )
     reason_intervals: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    reason_interval_units: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     category_to_reason: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
     auto_suggest_on_treatment_completed: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True

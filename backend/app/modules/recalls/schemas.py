@@ -6,7 +6,7 @@ from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 # --- Enum literals (mirrors ``models.REASONS`` etc.) ----------------------
 
@@ -41,6 +41,12 @@ Outcome = Literal[
     "declined",
     "wrong_number",
 ]
+
+IntervalUnit = Literal["day", "week", "month"]
+
+# Longest default interval per unit. 60 months is the cap the settings
+# form always had; days and weeks stop at about two years.
+INTERVAL_MAX: dict[str, int] = {"day": 730, "week": 104, "month": 60}
 
 
 # --- Recall CRUD -----------------------------------------------------------
@@ -160,6 +166,11 @@ class RecallSuggestion(BaseModel):
     patient_id: UUID
     reason: Reason
     due_month: date
+    # Exact day, set when the interval is in days or weeks.
+    due_date: date | None = None
+    interval_value: int
+    interval_unit: IntervalUnit = "month"
+    # Kept for older clients: the interval when it is in months, else 0.
     interval_months: int
     treatment_category_key: str | None = None
     treatment_id: UUID | None = None
@@ -172,6 +183,8 @@ class RecallSuggestion(BaseModel):
 class RecallSettingsResponse(BaseModel):
     clinic_id: UUID
     reason_intervals: dict[str, int]
+    # Unit of each ``reason_intervals`` entry; a missing reason is months.
+    reason_interval_units: dict[str, IntervalUnit] = Field(default_factory=dict)
     category_to_reason: dict[str, str]
     auto_suggest_on_treatment_completed: bool
     auto_link_on_appointment_scheduled: bool
@@ -181,10 +194,24 @@ class RecallSettingsResponse(BaseModel):
 
 
 class RecallSettingsUpdate(BaseModel):
-    reason_intervals: dict[str, int] | None = None
+    reason_intervals: dict[Reason, int] | None = None
+    reason_interval_units: dict[Reason, IntervalUnit] | None = None
     category_to_reason: dict[str, str] | None = None
     auto_suggest_on_treatment_completed: bool | None = None
     auto_link_on_appointment_scheduled: bool | None = None
+
+    @model_validator(mode="after")
+    def _intervals_in_range(self) -> RecallSettingsUpdate:
+        units = self.reason_interval_units or {}
+        for reason, value in (self.reason_intervals or {}).items():
+            # Without a unit in this request the stored one applies, which
+            # may be days — so only the widest bound can be checked here.
+            unit = units.get(reason)
+            limit = INTERVAL_MAX[unit] if unit else max(INTERVAL_MAX.values())
+            if not 0 <= value <= limit:
+                label = f"{unit}s" if unit else "days"
+                raise ValueError(f"Interval for '{reason}' must be between 0 and {limit} {label}.")
+        return self
 
 
 # --- Stats -----------------------------------------------------------------

@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "Días",
+      "week": "Semanas",
+      "month": "Meses"
+    },
     "title": "Recordatorios",
     "callList": "Lista de llamadas",
     "noRecallsThisMonth": "No hay recordatorios pendientes este mes",
@@ -79,6 +84,16 @@
       "month": "Mes objetivo",
       "targetMonth": "Mes objetivo",
       "preciseDate": "Elegir día concreto",
+      "recallOn": "Recordatorio el",
+      "customInterval": "Recordar en",
+      "intervalValue": "Número de días, semanas o meses",
+      "intervalUnit": "Unidad del intervalo",
+      "intervalRange": "Introduce un número entero de 1 a {max} ({unit}).",
+      "shortcuts": "Intervalos rápidos",
+      "shortcut": {
+        "week": "+{n} sem",
+        "month": "+{n} m"
+      },
       "priority": "Prioridad",
       "assigned": "Profesional asignado",
       "note": "Nota interna",
@@ -113,7 +128,11 @@
     "settings": {
       "title": "Recordatorios",
       "description": "Intervalos por motivo y mapeo de tratamientos",
-      "intervals": "Intervalos por defecto (meses)",
+      "intervals": "Intervalos por defecto",
+      "intervalsHelp": "Rellena la fecha del recordatorio al elegir este motivo. Usa días o semanas para seguimientos cortos; 0 significa sin valor por defecto.",
+      "intervalRange": "Introduce un número entero de 0 a {max} ({unit}).",
+      "intervalValue": "Intervalo de {reason}",
+      "intervalUnit": "Unidad del intervalo de {reason}",
       "categoryMap": "Tratamiento → motivo",
       "categoryKeyPlaceholder": "clave de categoría del catálogo",
       "autoSuggest": "Sugerir recordatorio al completar un tratamiento",

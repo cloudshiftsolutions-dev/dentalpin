@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "Giorni",
+      "week": "Settimane",
+      "month": "Mesi"
+    },
     "title": "Richiami",
     "callList": "Lista chiamate",
     "noRecallsThisMonth": "Nessun richiamo in sospeso questo mese",
@@ -75,6 +80,16 @@
       "month": "Mese previsto",
       "targetMonth": "Mese previsto",
       "preciseDate": "Scegli un giorno specifico",
+      "recallOn": "Richiamo il",
+      "customInterval": "Richiama tra",
+      "intervalValue": "Numero di giorni, settimane o mesi",
+      "intervalUnit": "Unità dell'intervallo",
+      "intervalRange": "Inserisci un numero intero da 1 a {max} ({unit}).",
+      "shortcuts": "Intervalli rapidi",
+      "shortcut": {
+        "week": "+{n} sett",
+        "month": "+{n} mesi"
+      },
       "priority": "Priorità",
       "assigned": "Professionista assegnato",
       "note": "Nota interna",
@@ -109,7 +124,11 @@
     "settings": {
       "title": "Richiami",
       "description": "Intervalli predefiniti + mappatura delle categorie di trattamento",
-      "intervals": "Intervalli predefiniti (mesi)",
+      "intervals": "Intervalli predefiniti",
+      "intervalsHelp": "Precompila la data del richiamo quando si sceglie questo motivo. Usa giorni o settimane per controlli brevi; 0 significa nessun valore predefinito.",
+      "intervalRange": "Inserisci un numero intero da 0 a {max} ({unit}).",
+      "intervalValue": "Intervallo: {reason}",
+      "intervalUnit": "Unità dell'intervallo: {reason}",
       "categoryMap": "Trattamento → motivo",
       "categoryKeyPlaceholder": "chiave categoria del listino",
       "autoSuggest": "Suggerisci un richiamo al completamento di un trattamento",

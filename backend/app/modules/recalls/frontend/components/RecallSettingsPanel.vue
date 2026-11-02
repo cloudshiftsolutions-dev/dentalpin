@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch } from 'vue'
-import type { RecallSettings } from '../composables/useRecalls'
+import type { RecallIntervalUnit, RecallSettings } from '../composables/useRecalls'
+import { RECALL_INTERVAL_MAX, RECALL_INTERVAL_UNITS } from '../utils/recallInterval'
 import { errorDetail } from '~~/app/utils/error'
 
 const { t } = useI18n()
@@ -36,12 +37,32 @@ onMounted(() => {
   fetchCategories()
 })
 
+const unitOptions = computed(() =>
+  RECALL_INTERVAL_UNITS.map(unit => ({ value: unit, label: t(`recalls.units.${unit}`) }))
+)
+
+function unitOf(reason: string): RecallIntervalUnit {
+  return settings.value?.reason_interval_units?.[reason] ?? 'month'
+}
+
+function intervalError(reason: string): string | undefined {
+  const value = settings.value?.reason_intervals[reason]
+  const max = RECALL_INTERVAL_MAX[unitOf(reason)]
+  if (typeof value !== 'number' || !Number.isInteger(value) || value < 0 || value > max) {
+    return t('recalls.settings.intervalRange', { max, unit: t(`recalls.units.${unitOf(reason)}`) })
+  }
+  return undefined
+}
+
+const hasIntervalErrors = computed(() => reasons.some(r => intervalError(r)))
+
 async function save() {
-  if (!settings.value || isSaving.value) return
+  if (!settings.value || isSaving.value || hasIntervalErrors.value) return
   isSaving.value = true
   try {
     const res = await recallsApi.updateSettings({
       reason_intervals: settings.value.reason_intervals,
+      reason_interval_units: settings.value.reason_interval_units,
       category_to_reason: settings.value.category_to_reason,
       auto_suggest_on_treatment_completed: settings.value.auto_suggest_on_treatment_completed,
       auto_link_on_appointment_scheduled: settings.value.auto_link_on_appointment_scheduled
@@ -59,6 +80,10 @@ function ensureInterval(reason: string) {
   if (!settings.value) return
   if (typeof settings.value.reason_intervals[reason] !== 'number') {
     settings.value.reason_intervals[reason] = 6
+  }
+  settings.value.reason_interval_units ??= {}
+  if (!settings.value.reason_interval_units[reason]) {
+    settings.value.reason_interval_units[reason] = 'month'
   }
 }
 
@@ -113,19 +138,37 @@ function removeCategory(key: string) {
           <h3 class="text-h3">
             {{ t('recalls.settings.intervals') }}
           </h3>
+          <p class="text-caption text-subtle mt-1">
+            {{ t('recalls.settings.intervalsHelp') }}
+          </p>
         </template>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
           <UFormField
             v-for="r in reasons"
             :key="r"
             :label="t(`recalls.reasons.${r}`)"
+            :error="intervalError(r)"
           >
-            <UInput
-              v-model.number="settings.reason_intervals[r]"
-              type="number"
-              min="0"
-              max="60"
-            />
+            <div class="flex gap-2">
+              <UInput
+                v-model.number="settings.reason_intervals[r]"
+                type="number"
+                inputmode="numeric"
+                min="0"
+                :max="RECALL_INTERVAL_MAX[unitOf(r)]"
+                step="1"
+                class="w-24 shrink-0"
+                :aria-label="t('recalls.settings.intervalValue', { reason: t(`recalls.reasons.${r}`) })"
+              />
+              <USelect
+                v-model="settings.reason_interval_units[r]"
+                :items="unitOptions"
+                value-key="value"
+                label-key="label"
+                class="flex-1 min-w-0"
+                :aria-label="t('recalls.settings.intervalUnit', { reason: t(`recalls.reasons.${r}`) })"
+              />
+            </div>
           </UFormField>
         </div>
       </UCard>
@@ -193,6 +236,7 @@ function removeCategory(key: string) {
         <UButton
           color="primary"
           :loading="isSaving"
+          :disabled="hasIntervalErrors"
           @click="save"
         >
           {{ t('recalls.actions.save') }}

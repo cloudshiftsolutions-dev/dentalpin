@@ -1,5 +1,10 @@
 {
   "recalls": {
+    "units": {
+      "day": "Tage",
+      "week": "Wochen",
+      "month": "Monate"
+    },
     "title": "Recalls",
     "callList": "Anrufliste",
     "noRecallsThisMonth": "Keine ausstehenden Recalls in diesem Monat",
@@ -75,6 +80,16 @@
       "month": "Zielmonat",
       "targetMonth": "Zielmonat",
       "preciseDate": "Bestimmten Tag wählen",
+      "recallOn": "Recall am",
+      "customInterval": "Recall in",
+      "intervalValue": "Anzahl Tage, Wochen oder Monate",
+      "intervalUnit": "Intervalleinheit",
+      "intervalRange": "Geben Sie eine ganze Zahl von 1 bis {max} ein ({unit}).",
+      "shortcuts": "Schnellintervalle",
+      "shortcut": {
+        "week": "+{n} Wo",
+        "month": "+{n} Mo"
+      },
       "priority": "Priorität",
       "assigned": "Zugewiesener Behandler",
       "note": "Interne Notiz",
@@ -109,7 +124,11 @@
     "settings": {
       "title": "Recalls",
       "description": "Standardintervalle + Zuordnung von Behandlungskategorien",
-      "intervals": "Standardintervalle (Monate)",
+      "intervals": "Standardintervalle",
+      "intervalsHelp": "Füllt das Recall-Datum vor, wenn dieser Grund gewählt wird. Tage oder Wochen für kurze Nachkontrollen verwenden; 0 bedeutet kein Standardwert.",
+      "intervalRange": "Geben Sie eine ganze Zahl von 0 bis {max} ein ({unit}).",
+      "intervalValue": "Intervall: {reason}",
+      "intervalUnit": "Intervalleinheit: {reason}",
       "categoryMap": "Behandlung → Grund",
       "categoryKeyPlaceholder": "Kategorieschlüssel des Katalogs",
       "autoSuggest": "Recall vorschlagen, wenn eine Behandlung abgeschlossen wird",

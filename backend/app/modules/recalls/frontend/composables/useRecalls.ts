@@ -23,6 +23,8 @@ export type RecallStatus
 
 export type RecallPriority = 'low' | 'normal' | 'high'
 
+export type RecallIntervalUnit = 'day' | 'week' | 'month'
+
 export type RecallChannel = 'phone' | 'whatsapp' | 'sms' | 'email'
 
 export type RecallOutcome
@@ -107,6 +109,8 @@ export interface AttemptCreatePayload {
 export interface RecallSettings {
   clinic_id: string
   reason_intervals: Record<string, number>
+  /** Unit of each interval; a reason missing here counts in months. */
+  reason_interval_units: Record<string, RecallIntervalUnit>
   category_to_reason: Record<string, string>
   auto_suggest_on_treatment_completed: boolean
   auto_link_on_appointment_scheduled: boolean
@@ -126,6 +130,10 @@ export interface RecallSuggestion {
   patient_id: string
   reason: RecallReason
   due_month: string
+  due_date?: string | null
+  interval_value: number
+  interval_unit: RecallIntervalUnit
+  /** @deprecated use interval_value + interval_unit */
   interval_months: number
   treatment_category_key?: string | null
   treatment_id?: string | null
