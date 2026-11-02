@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+- feat(DENTALPIN-39): `POST /documents/{id}/restore` unarchives a document,
+  back to `generated` when a PDF is on record, else `draft`. The Documents
+  page shows Unarchive on archived rows (Archive only on active ones), and
+  every row action has a tooltip and an accessible label.
+
 - fix(#524): the managed-document PDF renders in every host locale.
   `_LABELS` held only `es`/`en`, the endpoint's pattern was `^(es|en)$`
   and the frontend sent no `locale` at all — so every clinic, in every

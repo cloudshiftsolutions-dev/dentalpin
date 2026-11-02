@@ -14,6 +14,7 @@ Routes mounted at `/api/v1/documents/`.
 - `POST   /documents`                — create (draft); `documents.write`
 - `PATCH  /documents/{id}`           — edit title/content/status; `documents.write`
 - `DELETE /documents/{id}`           — soft-delete (archive); `documents.write`
+- `POST   /documents/{id}/restore`   — unarchive: back to `generated` when a PDF is on record (`file_path`), else `draft`; no-op when not archived; `documents.write`
 - `POST   /documents/generate`       — render document as branded PDF (WeasyPrint), persist under storage, flip to `generated`, publish `document.generated`; `documents.write`
 - `GET    /documents/{id}/download`  — stream the generated PDF; 404 if never generated / file missing; `documents.read`
 - `GET/PUT /documents/settings/letterhead` — letterhead overrides stored namespaced under `clinic.settings["documents"]["letterhead"]`; gated by core `admin.clinic.read`/`admin.clinic.write`; unset keys fall back to the clinic profile

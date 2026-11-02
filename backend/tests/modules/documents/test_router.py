@@ -79,6 +79,47 @@ async def test_document_crud_and_generate_flow(
 
 
 @pytest.mark.asyncio
+async def test_restore_unarchives_to_previous_state(
+    client, auth_headers, test_clinic: Clinic, test_patient
+) -> None:
+    """DENTALPIN-39: generated docs come back generated, drafts as drafts."""
+
+    async def create(title: str) -> str:
+        response = await client.post(
+            "/api/v1/documents",
+            headers=auth_headers,
+            json={
+                "patient_id": str(test_patient.id),
+                "document_type": "prescription",
+                "title": title,
+                "content": {"diagnosis": "pulpitis", "medications": []},
+            },
+        )
+        return response.json()["data"]["id"]
+
+    generated_id = await create("Generated Rx")
+    await client.post(
+        "/api/v1/documents/generate", headers=auth_headers, json={"document_id": generated_id}
+    )
+    draft_id = await create("Draft Rx")
+
+    for doc_id, expected in ((generated_id, "generated"), (draft_id, "draft")):
+        assert (
+            await client.delete(f"/api/v1/documents/{doc_id}", headers=auth_headers)
+        ).status_code == 204
+        response = await client.post(f"/api/v1/documents/{doc_id}/restore", headers=auth_headers)
+        assert response.status_code == 200, response.text
+        assert response.json()["data"]["status"] == expected
+
+        # Restoring an active document leaves it unchanged.
+        again = await client.post(f"/api/v1/documents/{doc_id}/restore", headers=auth_headers)
+        assert again.json()["data"]["status"] == expected
+
+    missing = await client.post(f"/api/v1/documents/{uuid4()}/restore", headers=auth_headers)
+    assert missing.status_code == 404
+
+
+@pytest.mark.asyncio
 async def test_download_renders_and_streams_pdf(
     client, auth_headers, test_clinic: Clinic, test_patient
 ) -> None:

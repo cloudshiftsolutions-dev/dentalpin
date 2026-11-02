@@ -187,6 +187,26 @@ class DocumentService:
         return True
 
     @staticmethod
+    async def restore_document(
+        db: AsyncSession,
+        clinic_id: uuid.UUID,
+        document_id: uuid.UUID,
+    ) -> GeneratedDocument | None:
+        """Unarchive a document. No-op when it is not archived.
+
+        Archiving overwrites the status, so the prior state is inferred:
+        a rendered PDF on record means it was generated, else a draft.
+        """
+        doc = await DocumentService.get_document(db, clinic_id, document_id)
+        if doc is None:
+            return None
+        if doc.status == DocumentStatus.ARCHIVED:
+            doc.status = DocumentStatus.GENERATED if doc.file_path else DocumentStatus.DRAFT
+            await db.flush()
+            await db.refresh(doc)
+        return doc
+
+    @staticmethod
     async def _render_bytes(
         db: AsyncSession,
         clinic_id: uuid.UUID,

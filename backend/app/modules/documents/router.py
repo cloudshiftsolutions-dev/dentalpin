@@ -243,6 +243,23 @@ async def delete_document(
 
 
 @router.post(
+    "/{document_id}/restore",
+    response_model=ApiResponse[DocumentResponse],
+)
+async def restore_document(
+    document_id: uuid.UUID,
+    ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
+    _: Annotated[None, Depends(require_permission("documents.write"))],
+    db: Annotated[AsyncSession, Depends(get_db)],
+) -> ApiResponse[DocumentResponse]:
+    """Unarchive a document (back to generated if it has a PDF, else draft)."""
+    doc = await service.DocumentService.restore_document(db, ctx.clinic_id, document_id)
+    if doc is None:
+        raise HTTPException(status_code=404, detail="Document not found")
+    return ApiResponse(data=DocumentResponse.model_validate(doc))
+
+
+@router.post(
     "/generate",
     response_model=ApiResponse[DocumentResponse],
 )

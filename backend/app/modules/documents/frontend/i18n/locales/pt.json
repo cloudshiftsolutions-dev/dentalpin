@@ -31,6 +31,7 @@
       "generate": "Gerar PDF",
       "edit": "Editar",
       "archive": "Arquivar",
+      "unarchive": "Desarquivar",
       "download": "Descarregar PDF"
     },
     "messages": {
@@ -38,6 +39,7 @@
       "updated": "Documento atualizado",
       "generated": "Documento gerado com sucesso",
       "archived": "Documento arquivado",
+      "unarchived": "Documento desarquivado",
       "downloaded": "PDF descarregado",
       "downloadFailed": "Falha ao descarregar o PDF"
     },

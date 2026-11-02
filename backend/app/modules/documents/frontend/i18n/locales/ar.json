@@ -31,6 +31,7 @@
       "generate": "إنشاء PDF",
       "edit": "تعديل",
       "archive": "أرشفة",
+      "unarchive": "إلغاء الأرشفة",
       "download": "تنزيل PDF"
     },
     "messages": {
@@ -38,6 +39,7 @@
       "updated": "تم تحديث المستند",
       "generated": "تم إنشاء المستند بنجاح",
       "archived": "تمت أرشفة المستند",
+      "unarchived": "تم إلغاء أرشفة المستند",
       "downloaded": "تم تنزيل ملف PDF",
       "downloadFailed": "فشل تنزيل ملف PDF"
     },

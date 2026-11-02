@@ -92,33 +92,69 @@
             v-if="can(PERMISSIONS.generatedDocuments.write)"
             class="flex items-center gap-1"
           >
-            <UButton
+            <UTooltip
               v-if="doc.status === 'draft'"
-              variant="ghost"
-              size="sm"
-              icon="i-lucide-pencil"
-              @click="openEditModal(doc)"
-            />
-            <UButton
+              :text="t('documents.actions.edit')"
+            >
+              <UButton
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-pencil"
+                :aria-label="t('documents.actions.edit')"
+                @click="openEditModal(doc)"
+              />
+            </UTooltip>
+            <UTooltip
               v-if="doc.status === 'draft'"
-              variant="ghost"
-              size="sm"
-              icon="i-lucide-file-down"
-              @click="generateDocument(doc)"
-            />
-            <UButton
+              :text="t('documents.actions.generate')"
+            >
+              <UButton
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-file-down"
+                :aria-label="t('documents.actions.generate')"
+                :loading="busyId === doc.id"
+                @click="generateDocument(doc)"
+              />
+            </UTooltip>
+            <UTooltip
               v-if="doc.status === 'generated'"
-              variant="ghost"
-              size="sm"
-              icon="i-lucide-download"
-              @click="downloadDocument(doc)"
-            />
-            <UButton
-              variant="ghost"
-              size="sm"
-              icon="i-lucide-archive"
-              @click="archiveDocument(doc)"
-            />
+              :text="t('documents.actions.download')"
+            >
+              <UButton
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-download"
+                :aria-label="t('documents.actions.download')"
+                @click="downloadDocument(doc)"
+              />
+            </UTooltip>
+            <UTooltip
+              v-if="doc.status === 'archived'"
+              :text="t('documents.actions.unarchive')"
+            >
+              <UButton
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-archive-restore"
+                :aria-label="t('documents.actions.unarchive')"
+                :loading="busyId === doc.id"
+                @click="unarchiveDocument(doc)"
+              />
+            </UTooltip>
+            <UTooltip
+              v-else
+              :text="t('documents.actions.archive')"
+            >
+              <UButton
+                variant="ghost"
+                size="sm"
+                icon="i-lucide-archive"
+                :aria-label="t('documents.actions.archive')"
+                :loading="busyId === doc.id"
+                @click="archiveDocument(doc)"
+              />
+            </UTooltip>
           </div>
         </div>
       </div>
@@ -153,7 +189,16 @@ import { errorMessage } from '~~/app/utils/error'
 const { t, locale } = useI18n()
 const { can } = usePermissions()
 const toast = useToast()
-const { listDocuments, deleteDocument, generateDocument: generateDocumentRequest, downloadDocument: downloadDocumentRequest } = useManagedDocuments()
+const {
+  listDocuments,
+  deleteDocument,
+  restoreDocument,
+  generateDocument: generateDocumentRequest,
+  downloadDocument: downloadDocumentRequest
+} = useManagedDocuments()
+
+// Row whose archive / unarchive / generate request is in flight.
+const busyId = ref<string | null>(null)
 
 // State
 const documents = ref<ManagedDocument[]>([])
@@ -245,12 +290,16 @@ function openEditModal(doc: ManagedDocument) {
 }
 
 async function generateDocument(doc: ManagedDocument) {
+  if (busyId.value) return
+  busyId.value = doc.id
   try {
     await generateDocumentRequest(doc.id, locale.value)
     toast.add({ title: t('documents.messages.generated'), color: 'success' })
     await fetchDocuments()
   } catch (error: unknown) {
     toast.add({ title: errorMessage(error, t('common.error')), color: 'error' })
+  } finally {
+    busyId.value = null
   }
 }
 
@@ -264,12 +313,30 @@ async function downloadDocument(doc: ManagedDocument) {
 }
 
 async function archiveDocument(doc: ManagedDocument) {
+  if (busyId.value) return
+  busyId.value = doc.id
   try {
     await deleteDocument(doc.id)
     toast.add({ title: t('documents.messages.archived'), color: 'success' })
     await fetchDocuments()
   } catch (error: unknown) {
     toast.add({ title: errorMessage(error, t('common.error')), color: 'error' })
+  } finally {
+    busyId.value = null
+  }
+}
+
+async function unarchiveDocument(doc: ManagedDocument) {
+  if (busyId.value) return
+  busyId.value = doc.id
+  try {
+    await restoreDocument(doc.id)
+    toast.add({ title: t('documents.messages.unarchived'), color: 'success' })
+    await fetchDocuments()
+  } catch (error: unknown) {
+    toast.add({ title: errorMessage(error, t('common.error')), color: 'error' })
+  } finally {
+    busyId.value = null
   }
 }
 

@@ -31,6 +31,7 @@
       "generate": "PDF generálása",
       "edit": "Szerkesztés",
       "archive": "Archiválás",
+      "unarchive": "Archiválás visszavonása",
       "download": "PDF letöltése"
     },
     "messages": {
@@ -38,6 +39,7 @@
       "updated": "Dokumentum frissítve",
       "generated": "Dokumentum sikeresen generálva",
       "archived": "Dokumentum archiválva",
+      "unarchived": "Dokumentum visszaállítva az archívumból",
       "downloaded": "PDF letöltve",
       "downloadFailed": "A PDF letöltése nem sikerült"
     },

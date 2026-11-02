@@ -31,6 +31,7 @@
       "generate": "Generuj PDF",
       "edit": "Edytuj",
       "archive": "Archiwizuj",
+      "unarchive": "Przywróć z archiwum",
       "download": "Pobierz PDF"
     },
     "messages": {
@@ -38,6 +39,7 @@
       "updated": "Zaktualizowano dokument",
       "generated": "Dokument wygenerowano pomyślnie",
       "archived": "Zarchiwizowano dokument",
+      "unarchived": "Dokument przywrócony z archiwum",
       "downloaded": "Pobrano PDF",
       "downloadFailed": "Nie udało się pobrać PDF"
     },

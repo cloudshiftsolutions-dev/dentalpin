@@ -94,6 +94,11 @@ export function useManagedDocuments() {
     await api.del<null>(`/api/v1/documents/${id}`)
   }
 
+  /** Unarchive: back to `generated` if a PDF was rendered, else `draft`. */
+  async function restoreDocument(id: string): Promise<ApiResponse<ManagedDocument>> {
+    return api.post<ApiResponse<ManagedDocument>>(`/api/v1/documents/${id}/restore`)
+  }
+
   /**
    * Render the document as a PDF in `locale`.
    *
@@ -148,6 +153,7 @@ export function useManagedDocuments() {
     createDocument,
     updateDocument,
     deleteDocument,
+    restoreDocument,
     generateDocument,
     downloadDocument
   }

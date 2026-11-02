@@ -31,6 +31,7 @@
       "generate": "Generate PDF",
       "edit": "Edit",
       "archive": "Archive",
+      "unarchive": "Unarchive",
       "download": "Download PDF"
     },
     "messages": {
@@ -38,6 +39,7 @@
       "updated": "Document updated",
       "generated": "Document generated successfully",
       "archived": "Document archived",
+      "unarchived": "Document unarchived",
       "downloaded": "PDF downloaded",
       "downloadFailed": "Failed to download PDF"
     },
