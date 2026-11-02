@@ -190,7 +190,13 @@ class SMTPProvider(EmailProvider):
                 )
 
             finally:
-                server.quit()
+                # A server that rejects the message often drops the
+                # connection; quit() then raises "please run connect()
+                # first" and would replace the real rejection reason.
+                try:
+                    server.quit()
+                except smtplib.SMTPException:
+                    server.close()
 
         except smtplib.SMTPAuthenticationError as e:
             logger.error(f"SMTP authentication failed: {e}")
@@ -207,6 +213,17 @@ class SMTPProvider(EmailProvider):
                 provider=self.name,
                 message_id=message_id,
                 error_message=f"Recipients refused: {e}",
+            )
+        except smtplib.SMTPSenderRefused as e:
+            logger.error(f"SMTP sender refused ({e.sender}): {e.smtp_code} {e.smtp_error!r}")
+            return EmailResult(
+                status=EmailStatus.FAILED,
+                provider=self.name,
+                message_id=message_id,
+                error_message=(
+                    f"Sender {e.sender} refused by the mail server ({e.smtp_code}). "
+                    "Set the From address to the mailbox the SMTP login owns."
+                ),
             )
         except smtplib.SMTPException as e:
             logger.error(f"SMTP error: {e}")

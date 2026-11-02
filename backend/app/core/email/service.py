@@ -152,7 +152,10 @@ class EmailService:
                 password=password,
                 use_tls=settings.use_tls,
                 use_ssl=settings.use_ssl,
-                default_from_email=settings.from_email or "",
+                # Most providers (Zoho, Gmail, M365) refuse to relay for a
+                # sender the login doesn't own, so the login is the safe
+                # fallback when no From address is configured.
+                default_from_email=settings.from_email or settings.username or "",
                 default_from_name=settings.from_name or "DentalPin",
             )
 
@@ -179,14 +182,17 @@ class EmailService:
 
         # Try to get clinic-specific provider
         provider = self.provider  # Default to global
+        clinic_provider = None
         if db and clinic_id:
             clinic_provider = await self.create_provider_for_clinic(db, clinic_id)
             if clinic_provider:
                 provider = clinic_provider
                 logger.info(f"Using clinic-specific email provider for clinic {clinic_id}")
 
-        # Apply default from address if not set
-        if not message.from_email:
+        # The global sender only belongs to the global provider. A clinic's
+        # own SMTP sends from its configured address (the provider's
+        # default); stamping the global one here made Zoho reject the relay.
+        if not message.from_email and clinic_provider is None:
             from app.config import settings
 
             message.from_email = settings.EMAIL_FROM_ADDRESS
@@ -335,7 +341,10 @@ class EmailService:
             except Exception:
                 continue
 
-        logger.warning(f"Template not found: {template_key}.{extension} for locale {locale}")
+        # Plain-text bodies are optional (no .txt templates ship today), so
+        # only a missing HTML template is worth a warning.
+        log = logger.warning if extension == "html" else logger.debug
+        log(f"Template not found: {template_key}.{extension} for locale {locale}")
         return None
 
     async def health_check(self) -> bool:
