@@ -47,4 +47,4 @@ class KapsoTemplateMapRequest(BaseModel):
 class KapsoTestRequest(BaseModel):
     to_number: str = Field(..., max_length=32)
     template_name: str = Field(..., max_length=200)
-    language: str = Field(default="es", max_length=10)
+    language: str = Field(default="en", max_length=10)

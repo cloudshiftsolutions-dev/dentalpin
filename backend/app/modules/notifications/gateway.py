@@ -694,4 +694,4 @@ class NotificationGateway:
 
 def _locale_of(msg: CommunicationMessage) -> str:
     ctx = msg.context_data or {}
-    return ctx.get("locale") or "es"
+    return ctx.get("locale") or "en"

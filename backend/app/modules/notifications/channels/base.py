@@ -59,7 +59,7 @@ class OutboundMessage:
     to_address: str  # email address or E.164 phone number
     clinic_id: UUID
     template_key: str
-    locale: str = "es"
+    locale: str = "en"
     context: dict = field(default_factory=dict)
     to_name: str | None = None
     patient_id: UUID | None = None

@@ -75,7 +75,7 @@ async def _create_prescription_draft(
             ctx.supervisor_id,
             params.patient_id,
             notes=params.notes,
-            locale="es",
+            locale="en",
             items=[item.model_dump() for item in params.items],
         )
     except HTTPException as exc:

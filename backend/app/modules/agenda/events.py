@@ -38,7 +38,7 @@ async def on_clinic_created(data: dict[str, Any]) -> None:
     except (ValueError, TypeError):
         return
 
-    name = _DEFAULT_CABINET_NAME.get(data.get("language") or "es", _DEFAULT_CABINET_NAME["en"])
+    name = _DEFAULT_CABINET_NAME.get(data.get("language") or "en", _DEFAULT_CABINET_NAME["en"])
 
     async with async_session_maker() as db:
         try:

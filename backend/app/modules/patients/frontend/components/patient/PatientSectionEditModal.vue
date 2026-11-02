@@ -67,7 +67,7 @@ const demographicsForm = reactive({
   national_id_type: undefined as string | undefined,
   profession: '',
   workplace: '',
-  preferred_language: 'es',
+  preferred_language: 'en',
   address: {
     street: '',
     city: '',
@@ -160,7 +160,7 @@ function initializeForm() {
     demographicsForm.national_id_type = props.patient.national_id_type
     demographicsForm.profession = props.patient.profession || ''
     demographicsForm.workplace = props.patient.workplace || ''
-    demographicsForm.preferred_language = props.patient.preferred_language || 'es'
+    demographicsForm.preferred_language = props.patient.preferred_language || 'en'
     demographicsForm.address = { ...emptyPatientAddress(clinicCountry.value), ...props.patient.address }
   } else if (props.section === 'emergency') {
     emergencyForm.value = props.patient.emergency_contact ? { ...props.patient.emergency_contact } : null
@@ -214,7 +214,7 @@ async function handleSave() {
         national_id_type: demographicsForm.national_id_type || null,
         profession: demographicsForm.profession || null,
         workplace: demographicsForm.workplace || null,
-        preferred_language: demographicsForm.preferred_language || 'es',
+        preferred_language: demographicsForm.preferred_language || 'en',
         address
       }
     } else if (props.section === 'emergency') {

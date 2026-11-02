@@ -140,7 +140,7 @@ class PatientExtendedResponse(PatientResponse):
     national_id_type: str | None = None
     profession: str | None = None
     workplace: str | None = None
-    preferred_language: str = "es"
+    preferred_language: str = "en"
     address: PatientAddress | None = None
     photo_url: str | None = None
 

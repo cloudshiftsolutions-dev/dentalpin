@@ -212,7 +212,7 @@ async def download_prescription_pdf(
         },
         hook_data=hook_data,
         label_overrides=label_overrides,
-        locale=row.locale or "es",
+        locale=row.locale or "en",
     )
     if hook is not None:
         data = hook.enhance_pdf_data(data, row) or data

@@ -211,7 +211,7 @@ class DocumentService:
         db: AsyncSession,
         clinic_id: uuid.UUID,
         doc: GeneratedDocument,
-        locale: str = "es",
+        locale: str = "en",
     ) -> bytes:
         """Render a document as branded PDF bytes.
 
@@ -236,7 +236,7 @@ class DocumentService:
         db: AsyncSession,
         clinic_id: uuid.UUID,
         document_id: uuid.UUID,
-        locale: str = "es",
+        locale: str = "en",
     ) -> GeneratedDocument | None:
         """Render a document, persist the branded PDF, publish the event.
 

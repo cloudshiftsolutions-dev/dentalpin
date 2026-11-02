@@ -421,12 +421,12 @@ async def test_identity_header_falls_back_when_the_clinic_language_is_unusable(
     await _use_clinic_language(db_session, test_clinic, None)
     await _route(db_session, test_clinic.id)
     note = (await _recalls(db_session, patient.id))[0].reason_note or ""
-    assert note.startswith(f"{LABEL_ES}: Marta Ruiz")  # platform default
+    assert note.startswith(f"{LABEL_EN}: Marta Ruiz")  # platform default (English fork)
 
     await _use_clinic_language(db_session, test_clinic, "xx")
     await _route(db_session, test_clinic.id, motive="Otra consulta")
     note = (await _recalls(db_session, patient.id))[0].reason_note or ""
-    assert f"\n\n---\n\n{LABEL_ES}: Marta Ruiz" in note
+    assert f"\n\n---\n\n{LABEL_EN}: Marta Ruiz" in note
     assert "None" not in note
 
 

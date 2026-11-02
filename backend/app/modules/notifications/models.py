@@ -55,7 +55,7 @@ class NotificationTemplate(Base, TimestampMixin):
     # Identification
     channel: Mapped[str] = mapped_column(String(20), default="email", index=True)
     template_key: Mapped[str] = mapped_column(String(100), index=True)
-    locale: Mapped[str] = mapped_column(String(5), default="es")  # es, en
+    locale: Mapped[str] = mapped_column(String(5), default="en")  # es, en
 
     # Email content (ignored for non-email channels)
     subject: Mapped[str | None] = mapped_column(String(255), default=None)
@@ -144,7 +144,7 @@ class NotificationPreference(Base, TimestampMixin):
     )
 
     # Language preference
-    preferred_locale: Mapped[str] = mapped_column(String(5), default="es")
+    preferred_locale: Mapped[str] = mapped_column(String(5), default="en")
 
     # Relationships
     clinic: Mapped["Clinic"] = relationship(foreign_keys=[clinic_id])

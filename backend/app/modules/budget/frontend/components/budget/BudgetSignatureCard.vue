@@ -7,7 +7,7 @@ interface Props {
   locale?: string
 }
 
-const props = withDefaults(defineProps<Props>(), { locale: 'es' })
+const props = withDefaults(defineProps<Props>(), { locale: 'en' })
 
 const { t, locale: i18nLocale } = useI18n()
 const toast = useToast()

@@ -37,8 +37,8 @@ const form = reactive({
   display_phone_number: ''
 })
 
-const test = reactive({ to_number: '', template_name: '', language: 'es' })
-const mapping = reactive({ notification_type: 'appointment_reminder', template_name: '', locale: 'es' })
+const test = reactive({ to_number: '', template_name: '', language: 'en' })
+const mapping = reactive({ notification_type: 'appointment_reminder', template_name: '', locale: 'en' })
 
 const webhookUrl = computed(() => `${window.location.origin}/api/v1/whatsapp_kapso/webhook`)
 const approvedTemplates = computed(() => templates.value.filter(tpl => tpl.status === 'approved'))

@@ -71,7 +71,7 @@ export function useKapso() {
     }, { errorToast: false })
   }
 
-  async function testConnection(toNumber: string, templateName: string, language = 'es') {
+  async function testConnection(toNumber: string, templateName: string, language = 'en') {
     const res = await api.post<ApiResponse<{ success: boolean, error: string | null }>>(
       `${BASE}/test`,
       { to_number: toNumber, template_name: templateName, language },

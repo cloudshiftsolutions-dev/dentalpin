@@ -43,7 +43,7 @@ class EmailAdapter:
             to_email=msg.to_address,
             template_key=msg.template_key,
             context=msg.context,
-            subject=msg.subject or f"Notificación: {msg.template_key}",
+            subject=msg.subject or f"Notification: {msg.template_key}",
             locale=msg.locale,
             to_name=msg.to_name,
             template_html=msg.body_html,

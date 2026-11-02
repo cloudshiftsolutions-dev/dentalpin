@@ -144,7 +144,7 @@ class KapsoService:
 
     @staticmethod
     async def test_connection(
-        db: AsyncSession, clinic_id: UUID, to_number: str, template_name: str, language: str = "es"
+        db: AsyncSession, clinic_id: UUID, to_number: str, template_name: str, language: str = "en"
     ) -> tuple[bool, str | None]:
         settings = await KapsoService.get_settings(db, clinic_id)
         if settings is None:

@@ -263,7 +263,7 @@ export function useProcurement() {
     return api.post<ApiResponse<PurchaseOrder>>(`/api/v1/purchase_orders/${id}/receive`, { lines }, { errorToast: false })
   }
 
-  async function downloadPurchaseOrderPdf(id: string, locale = 'es'): Promise<void> {
+  async function downloadPurchaseOrderPdf(id: string, locale = 'en'): Promise<void> {
     // The PDF comes back as a blob and needs the session, so it cannot be
     // a plain link; api.raw carries the cookies and refreshes on 401.
     // Every host locale renders now (#485); the endpoint validates the

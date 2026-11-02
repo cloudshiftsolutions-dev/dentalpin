@@ -11,7 +11,7 @@ Usage:
         to_email="patient@example.com",
         to_name="John Doe",
         template_key="appointment_confirmation",
-        locale="es",
+        locale="en",
         context={"patient_name": "John", "appointment_date": "2024-12-15"},
     )
 """

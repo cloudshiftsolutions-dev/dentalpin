@@ -343,11 +343,11 @@ export function useBudgets() {
   // PDF
   // ============================================================================
 
-  async function downloadPDF(id: string, locale: string = 'es'): Promise<void> {
+  async function downloadPDF(id: string, locale: string = 'en'): Promise<void> {
     await downloadPDFAt(`/api/v1/budget/budgets/${id}/pdf?locale=${locale}`, `presupuesto_${id}.pdf`)
   }
 
-  async function downloadSignedPDF(id: string, locale: string = 'es'): Promise<void> {
+  async function downloadSignedPDF(id: string, locale: string = 'en'): Promise<void> {
     await downloadPDFAt(
       `/api/v1/budget/budgets/${id}/pdf/signed?locale=${locale}`,
       `presupuesto_${id}_firmado.pdf`
@@ -378,7 +378,7 @@ export function useBudgets() {
     window.URL.revokeObjectURL(url)
   }
 
-  function getPDFPreviewUrl(id: string, locale: string = 'es'): string {
+  function getPDFPreviewUrl(id: string, locale: string = 'en'): string {
     const baseUrl = config.public.apiBaseUrl
     return `${baseUrl}/api/v1/budget/budgets/${id}/pdf/preview?locale=${locale}`
   }

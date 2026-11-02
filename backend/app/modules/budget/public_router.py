@@ -206,8 +206,7 @@ async def get_public_budget_meta(
         clinic_address_line = ", ".join(p for p in parts if p) or None
     if clinic_row and clinic_row.settings:
         clinic_language = (clinic_row.settings or {}).get("communication_language")
-    # Default to Spanish — matches the project's primary user base.
-    clinic_language = clinic_language or "es"
+    clinic_language = clinic_language or "en"
 
     patient_row = (
         await db.execute(
@@ -444,7 +443,7 @@ async def download_public_signed_budget_pdf(
     clinic_settings = (
         clinic_row.settings if clinic_row and isinstance(clinic_row.settings, dict) else {}
     ) or {}
-    locale = str(clinic_settings.get("communication_language") or "es")
+    locale = str(clinic_settings.get("communication_language") or "en")
 
     pdf_bytes = await BudgetPDFService.generate_pdf(
         full_budget,

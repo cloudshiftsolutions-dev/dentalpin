@@ -47,7 +47,7 @@ class BudgetPDFService:
         budget: Budget,
         clinic: "Clinic",
         is_preview: bool = False,
-        locale: str = "es",
+        locale: str = "en",
         signature: "BudgetSignature | None" = None,
     ) -> bytes:
         """Generate PDF for a budget.

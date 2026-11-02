@@ -206,7 +206,7 @@ class EmailService:
         template_key: str,
         context: dict,
         subject: str,
-        locale: str = "es",
+        locale: str = "en",
         to_name: str | None = None,
         from_email: str | None = None,
         from_name: str | None = None,
@@ -228,7 +228,7 @@ class EmailService:
             template_key: Template identifier (e.g., 'appointment_confirmation').
             context: Template context variables.
             subject: Email subject (can include template variables).
-            locale: Language code for template selection (default 'es').
+            locale: Language code for template selection (default 'en').
             to_name: Recipient name (optional).
             from_email: Sender email (optional, uses default).
             from_name: Sender name (optional, uses default).

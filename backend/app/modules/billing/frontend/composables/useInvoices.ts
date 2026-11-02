@@ -467,7 +467,7 @@ export function useInvoices() {
   // PDF
   // ============================================================================
 
-  async function downloadPDF(id: string, locale: string = 'es'): Promise<void> {
+  async function downloadPDF(id: string, locale: string = 'en'): Promise<void> {
     const response = await api.raw(`/api/v1/billing/invoices/${id}/pdf?locale=${locale}`)
 
     if (!response.ok) {
@@ -501,7 +501,7 @@ export function useInvoices() {
     window.URL.revokeObjectURL(url)
   }
 
-  function getPDFPreviewUrl(id: string, locale: string = 'es'): string {
+  function getPDFPreviewUrl(id: string, locale: string = 'en'): string {
     const baseUrl = config.public.apiBaseUrl
     return `${baseUrl}/api/v1/billing/invoices/${id}/pdf/preview?locale=${locale}`
   }

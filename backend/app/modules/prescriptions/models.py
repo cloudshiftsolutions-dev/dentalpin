@@ -40,7 +40,7 @@ class Prescription(Base, TimestampMixin):
     status: Mapped[str] = mapped_column(String(20), default="draft")
     issued_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), default=None)
     notes: Mapped[str | None] = mapped_column(Text, default=None)
-    locale: Mapped[str] = mapped_column(String(8), default="es")
+    locale: Mapped[str] = mapped_column(String(8), default="en")
 
     # Prescriber snapshot frozen at issue time (identity must not drift
     # when the profile later changes — legal artifact).

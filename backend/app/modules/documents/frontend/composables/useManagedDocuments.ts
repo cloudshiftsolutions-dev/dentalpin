@@ -109,7 +109,7 @@ export function useManagedDocuments() {
    */
   async function generateDocument(
     document_id: string,
-    locale = 'es'
+    locale = 'en'
   ): Promise<ApiResponse<ManagedDocument>> {
     return api.post<ApiResponse<ManagedDocument>>(
       `/api/v1/documents/generate?locale=${encodeURIComponent(locale)}`,

@@ -268,7 +268,7 @@ async def generate_document(
     ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
     _: Annotated[None, Depends(require_permission("documents.write"))],
     db: Annotated[AsyncSession, Depends(get_db)],
-    locale: str = Query(default="es", pattern=PDF_LOCALE_PATTERN),
+    locale: str = Query(default="en", pattern=PDF_LOCALE_PATTERN),
 ) -> ApiResponse[DocumentResponse]:
     """Generate (render) a document as a branded PDF.
 

@@ -155,7 +155,7 @@ async def download_purchase_order_pdf(
     ctx: Annotated[ClinicContext, Depends(get_clinic_context)],
     _: Annotated[None, Depends(require_permission("purchase_orders.read"))],
     db: Annotated[AsyncSession, Depends(get_db)],
-    locale: str = Query(default="es", pattern=PDF_LOCALE_PATTERN),
+    locale: str = Query(default="en", pattern=PDF_LOCALE_PATTERN),
 ) -> Response:
     """Download a purchase order as PDF (export, no signature section)."""
     await PurchaseOrderService.get_order(db, ctx.clinic_id, order_id)  # 404 mapping

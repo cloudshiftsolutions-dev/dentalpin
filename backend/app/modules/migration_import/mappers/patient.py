@@ -258,7 +258,7 @@ class PatientMapper:
             "notes": notes,
             "status": status,
             "do_not_contact": do_not_contact,
-            "preferred_language": "es",
+            "preferred_language": "en",
         }
         # Drop None to let SQLAlchemy column defaults apply.
         data = {k: v for k, v in data.items() if v is not None}

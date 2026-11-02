@@ -323,7 +323,7 @@ class DocumentPDFService:
         document: GeneratedDocument,
         clinic: Clinic,
         patient: Patient,
-        locale: str = "es",
+        locale: str = "en",
         issued_by: str = "",
     ) -> asyncio.Future[bytes]:
         """Render the document to PDF bytes off the event loop."""
@@ -342,7 +342,7 @@ class DocumentPDFService:
         document: GeneratedDocument,
         clinic: Clinic,
         patient: Patient,
-        locale: str = "es",
+        locale: str = "en",
         issued_by: str = "",
     ) -> bytes:
         """Return the rendered PDF for a document."""

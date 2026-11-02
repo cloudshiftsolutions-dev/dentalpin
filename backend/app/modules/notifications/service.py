@@ -20,9 +20,9 @@ from .models import (
 )
 
 # Default locale used for patient-facing communications when neither a
-# clinic preference nor a patient preference is set. Matches the
-# project's primary user base (Spain).
-DEFAULT_COMMUNICATION_LOCALE = "es"
+# clinic preference nor a patient preference is set. The CloudShift fork
+# serves English-speaking clinics (upstream defaults to Spanish).
+DEFAULT_COMMUNICATION_LOCALE = "en"
 
 
 async def resolve_clinic_communication_locale(
@@ -113,7 +113,7 @@ class NotificationService:
         db: AsyncSession,
         clinic_id: UUID,
         template_key: str,
-        locale: str = "es",
+        locale: str = "en",
         channel: str = "email",
     ) -> NotificationTemplate | None:
         """Get a template by key, locale and channel.

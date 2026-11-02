@@ -21,7 +21,7 @@ class PrescriptionItemCreate(BaseModel):
 class PrescriptionCreate(BaseModel):
     patient_id: UUID
     notes: str | None = None
-    locale: str = Field(default="es", max_length=8)
+    locale: str = Field(default="en", max_length=8)
     items: list[PrescriptionItemCreate] = Field(default_factory=list)
 
 

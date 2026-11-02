@@ -105,8 +105,9 @@ class Settings(BaseSettings):
     # Language the backend writes into stored, human-readable copy (catalog
     # names on invoices/plans/sessions, timeline titles fallback, copilot
     # tool payloads). The UI translates its own strings; this only governs
-    # text resolved server-side from i18n JSONB. Upstream default is Spanish.
-    CONTENT_LOCALE: str = "es"
+    # text resolved server-side from i18n JSONB. Upstream defaults to Spanish;
+    # the CloudShift fork serves English-speaking clinics.
+    CONTENT_LOCALE: str = "en"
 
     # Rate limiting
     LOGIN_RATE_LIMIT: str = "5/minute"

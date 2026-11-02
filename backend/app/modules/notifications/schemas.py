@@ -15,7 +15,7 @@ class EmailTemplateBase(BaseModel):
 
     template_key: str = Field(..., max_length=100)
     channel: str = Field(default="email", max_length=20)
-    locale: str = Field(default="es", max_length=5)
+    locale: str = Field(default="en", max_length=5)
     subject: str | None = Field(default=None, max_length=255)
     body_html: str | None = None
     body_text: str | None = None
@@ -76,7 +76,7 @@ class NotificationPreferenceBase(BaseModel):
             "welcome": True,
         }
     )
-    preferred_locale: str = Field(default="es", max_length=5)
+    preferred_locale: str = Field(default="en", max_length=5)
 
 
 class NotificationPreferenceCreate(NotificationPreferenceBase):

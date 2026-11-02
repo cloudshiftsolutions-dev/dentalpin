@@ -46,7 +46,7 @@ class InvoicePDFService:
         invoice: Invoice,
         clinic: "Clinic",
         is_preview: bool = False,
-        locale: str = "es",
+        locale: str = "en",
         extra_pdf_data: dict | None = None,
         total_paid: Decimal | None = None,
         balance_due: Decimal | None = None,

@@ -102,7 +102,7 @@ class PrescriptionService:
             patient_id=patient_id,
             prescriber_id=prescriber_id,
             notes=notes,
-            locale=locale or "es",
+            locale=locale or "en",
         )
         db.add(row)
         await db.flush()

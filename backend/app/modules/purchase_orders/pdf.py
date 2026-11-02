@@ -263,7 +263,7 @@ class PurchaseOrderPDFService:
     """Self-contained WeasyPrint PDF for a purchase order."""
 
     @staticmethod
-    async def generate_pdf(response: dict, clinic: Clinic, locale: str = "es") -> bytes:
+    async def generate_pdf(response: dict, clinic: Clinic, locale: str = "en") -> bytes:
         html = PurchaseOrderPDFService._generate_html(response, clinic, locale)
         return await asyncio.to_thread(PurchaseOrderPDFService._html_to_pdf, html)
 

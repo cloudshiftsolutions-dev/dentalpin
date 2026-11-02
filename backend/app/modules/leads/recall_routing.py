@@ -65,7 +65,7 @@ _IDENTITY_LABELS: dict[str, str] = {
     "ta": "இணையதளப் படிவம் — சமர்ப்பிக்கப்பட்டது",
     "ar": "نموذج الموقع الإلكتروني — أُرسل باسم",
 }
-_FALLBACK_LOCALE = "es"
+_FALLBACK_LOCALE = "en"
 
 
 def _identity_label(locale: str | None) -> str:

@@ -273,7 +273,7 @@ class BudgetWorkflowService:
                 clinic_settings = (
                     clinic.settings if isinstance(clinic.settings, dict) else {}
                 ) or {}
-                locale = str(clinic_settings.get("communication_language") or "es")
+                locale = str(clinic_settings.get("communication_language") or "en")
                 # Re-fetch budget with items eagerly loaded for the PDF.
                 from sqlalchemy.orm import selectinload
 

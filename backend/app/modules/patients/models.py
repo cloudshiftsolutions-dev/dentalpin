@@ -48,7 +48,7 @@ class Patient(Base, TimestampMixin):
     national_id_type: Mapped[str | None] = mapped_column(String(20))  # dni, nie, passport
     profession: Mapped[str | None] = mapped_column(String(100))
     workplace: Mapped[str | None] = mapped_column(String(200))
-    preferred_language: Mapped[str] = mapped_column(String(10), default="es")
+    preferred_language: Mapped[str] = mapped_column(String(10), default="en")
     address: Mapped[dict | None] = mapped_column(JSONB)
     photo_url: Mapped[str | None] = mapped_column(String(500))
 

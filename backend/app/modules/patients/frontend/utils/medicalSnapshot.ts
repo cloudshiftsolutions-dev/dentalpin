@@ -179,7 +179,7 @@ export function isMinorPatient(dateOfBirth: string | null | undefined): boolean 
   return age !== null && age < 18
 }
 
-export function formatPatientDate(dateStr: string | null | undefined, locale = 'es-ES'): string | null {
+export function formatPatientDate(dateStr: string | null | undefined, locale = 'en-IN'): string | null {
   if (!dateStr) return null
   const d = new Date(dateStr)
   if (Number.isNaN(d.getTime())) return null

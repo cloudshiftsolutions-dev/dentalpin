@@ -241,7 +241,7 @@ def build_pdf_data(
     clinic: dict[str, Any],
     hook_data: dict[str, Any] | None = None,
     label_overrides: dict[str, str] | None = None,
-    locale: str = "es",
+    locale: str = "en",
 ) -> dict[str, Any]:
     """Structured, already-escaped PDF payload for the renderer.
 
@@ -307,7 +307,7 @@ def render_html(data: dict[str, Any]) -> str:
     notes = f"<p>{labels['notes']}: {data['notes']}</p>" if data["notes"] else ""
     # Arabic mirrors the document; the language is declared either way so
     # the renderer picks the right font and shaping (#485).
-    locale = data.get("locale", "es")
+    locale = data.get("locale", "en")
     rtl_attr = ' dir="rtl"' if locale == "ar" else ""
     return f"""<!DOCTYPE html>
 <html lang="{locale}"{rtl_attr}><head><meta charset="utf-8">
