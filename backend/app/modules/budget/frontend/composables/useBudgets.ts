@@ -17,6 +17,7 @@ import type {
   BudgetVersionList,
   PaginatedResponse
 } from '~~/app/types'
+import { filenameFromContentDisposition } from '~~/app/utils/downloadFilename'
 
 export interface BudgetSignatureMeta {
   id: string
@@ -369,9 +370,7 @@ export function useBudgets() {
     const link = document.createElement('a')
     link.href = url
 
-    const contentDisposition = response.headers.get('Content-Disposition')
-    const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/)
-    link.download = filenameMatch?.[1] || fallbackName
+    link.download = filenameFromContentDisposition(response.headers.get('Content-Disposition'), fallbackName)
 
     document.body.appendChild(link)
     link.click()

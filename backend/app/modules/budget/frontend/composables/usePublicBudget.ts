@@ -12,6 +12,8 @@
  * server-side; ``credentials: 'include'`` ensures the browser sends it.
  */
 
+import { filenameFromContentDisposition } from '~~/app/utils/downloadFilename'
+
 export type PublicAuthMethod = 'phone_last4' | 'dob' | 'manual_code' | 'none'
 
 export interface PublicMeta {
@@ -185,9 +187,10 @@ export function usePublicBudget(token: string) {
       const url = window.URL.createObjectURL(blob)
       const link = document.createElement('a')
       link.href = url
-      const cd = response.headers.get('Content-Disposition')
-      const match = cd?.match(/filename="?(.+?)"?$/)
-      link.download = match?.[1] || `presupuesto_firmado.pdf`
+      link.download = filenameFromContentDisposition(
+        response.headers.get('Content-Disposition'),
+        'presupuesto_firmado.pdf'
+      )
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)

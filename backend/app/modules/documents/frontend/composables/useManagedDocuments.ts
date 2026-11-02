@@ -7,6 +7,7 @@
  */
 
 import type { ApiResponse, PaginatedResponse } from '~~/app/types'
+import { filenameFromContentDisposition } from '~~/app/utils/downloadFilename'
 
 export interface ManagedDocument {
   id: string
@@ -130,9 +131,10 @@ export function useManagedDocuments() {
     const link = document.createElement('a')
     link.href = url
 
-    const contentDisposition = response.headers.get('Content-Disposition')
-    const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/)
-    link.download = filenameMatch?.[1] || `document_${document_id.slice(0, 8)}.pdf`
+    link.download = filenameFromContentDisposition(
+      response.headers.get('Content-Disposition'),
+      `document_${document_id.slice(0, 8)}.pdf`
+    )
 
     document.body.appendChild(link)
     link.click()

@@ -27,6 +27,7 @@ import type {
   SeriesResetRequest
 } from '~~/app/types'
 import { paymentMethodLabel } from '~~/app/utils/paymentMethod'
+import { filenameFromContentDisposition } from '~~/app/utils/downloadFilename'
 
 export interface InvoiceListParams {
   page?: number
@@ -489,10 +490,10 @@ export function useInvoices() {
     const link = document.createElement('a')
     link.href = url
 
-    // Extract filename from Content-Disposition header or generate one
-    const contentDisposition = response.headers.get('Content-Disposition')
-    const filenameMatch = contentDisposition?.match(/filename="?(.+)"?/)
-    link.download = filenameMatch?.[1] || `factura_${id}.pdf`
+    link.download = filenameFromContentDisposition(
+      response.headers.get('Content-Disposition'),
+      `factura_${id}.pdf`
+    )
 
     document.body.appendChild(link)
     link.click()

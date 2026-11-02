@@ -8,6 +8,7 @@
  */
 
 import type { ApiResponse, PaginatedResponse } from '~~/app/types'
+import { filenameFromContentDisposition } from '~~/app/utils/downloadFilename'
 
 export interface ProcurementSupplier {
   id: string
@@ -278,8 +279,10 @@ export function useProcurement() {
     const url = window.URL.createObjectURL(await response.blob())
     const link = document.createElement('a')
     link.href = url
-    const disposition = response.headers.get('Content-Disposition')
-    link.download = disposition?.match(/filename="?([^"]+)"?/)?.[1] || `purchase_order_${id}.pdf`
+    link.download = filenameFromContentDisposition(
+      response.headers.get('Content-Disposition'),
+      `purchase_order_${id}.pdf`
+    )
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
