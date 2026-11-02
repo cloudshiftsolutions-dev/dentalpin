@@ -379,6 +379,7 @@ class NotificationHandlers:
         reads are the publisher's own (issue #183).
         """
         from app.modules.billing.models import Invoice, InvoiceItem
+        from app.modules.billing.service import compute_paid_summary
         from app.modules.notifications.gateway import NotificationGateway
         from app.modules.patients.models import Patient
 
@@ -419,6 +420,9 @@ class NotificationHandlers:
                 )
                 items = result.scalars().all()
 
+                # Not a column: computed from the invoice's payments.
+                _, balance_due = await compute_paid_summary(db, invoice.clinic_id, invoice.id)
+
                 # Build items list for template
                 invoice_items = []
                 for item in items:
@@ -446,7 +450,7 @@ class NotificationHandlers:
                     else None,
                     "total_tax": float(invoice.total_tax) if invoice.total_tax else None,
                     "total": float(invoice.total),
-                    "balance_due": float(invoice.balance_due),
+                    "balance_due": float(balance_due),
                     "billing_name": invoice.billing_name,
                     "custom_message": data.get("custom_message"),
                     "clinic_name": clinic.name if clinic else "DentalPin",
