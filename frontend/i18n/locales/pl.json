@@ -193,6 +193,27 @@
     "profession": "Zawód",
     "workplace": "Miejsce pracy",
     "years": "lat",
+    "age": "Wiek",
+    "ageUnit": "Lata",
+    "ageHelp": "Jeśli dokładna data urodzenia nie jest znana, wpisz wiek, a zostanie uzupełniona przybliżona data.",
+    "createAction": "Utwórz pacjenta",
+    "addressForm": {
+      "title": "Adres",
+      "street": "Ulica i numer",
+      "city": "Miasto / miejscowość",
+      "postalCode": "Kod pocztowy",
+      "province": "Województwo / region",
+      "country": "Kraj"
+    },
+    "validation": {
+      "firstName": "Wpisz imię pacjenta.",
+      "lastName": "Wpisz nazwisko pacjenta.",
+      "phone": "Wpisz poprawny numer telefonu, używając tylko cyfr, np. +48 512 345 678. Litery są niedozwolone.",
+      "email": "Wpisz pełny adres e-mail z domeną, np. gmail.com.",
+      "dateOfBirth": "Wpisz datę urodzenia, która nie jest w przyszłości.",
+      "age": "Wpisz wiek w pełnych latach od 0 do {max}.",
+      "fixErrors": "Przed zapisaniem sprawdź zaznaczone pola."
+    },
     "status": {
       "active": "Aktywny",
       "archived": "Zarchiwizowany"

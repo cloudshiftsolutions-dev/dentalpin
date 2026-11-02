@@ -2,12 +2,14 @@
 import { describe, expect, it } from 'vitest'
 import {
   hasErrors,
-  isValidDateOfBirth,
-  isValidEmail,
-  isValidPhone,
   validateLeadForm,
   validatePatientForm
 } from '#module-layers/leads/frontend/utils/leadValidation'
+import {
+  isValidDateOfBirth,
+  isValidEmail,
+  isValidPhone
+} from '~~/app/utils/contactValidation'
 
 /**
  * The client-side guards. They exist so a typo is caught before the round

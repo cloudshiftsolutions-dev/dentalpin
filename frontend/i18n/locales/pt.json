@@ -193,6 +193,27 @@
     "profession": "Profissão",
     "workplace": "Local de trabalho",
     "years": "anos",
+    "age": "Idade",
+    "ageUnit": "Anos",
+    "ageHelp": "Se a data de nascimento exata for desconhecida, introduza a idade e será preenchida uma data aproximada.",
+    "createAction": "Criar paciente",
+    "addressForm": {
+      "title": "Morada",
+      "street": "Rua e número",
+      "city": "Cidade / localidade",
+      "postalCode": "Código postal",
+      "province": "Distrito / estado",
+      "country": "País"
+    },
+    "validation": {
+      "firstName": "Introduza o nome do paciente.",
+      "lastName": "Introduza o apelido do paciente.",
+      "phone": "Introduza um número de telefone válido usando apenas dígitos, por exemplo +351 912 345 678. Não são permitidas letras.",
+      "email": "Introduza um email completo com domínio, por exemplo gmail.com.",
+      "dateOfBirth": "Introduza uma data de nascimento que não seja futura.",
+      "age": "Introduza uma idade em anos inteiros entre 0 e {max}.",
+      "fixErrors": "Verifique os campos assinalados antes de guardar."
+    },
     "status": {
       "active": "Ativo",
       "archived": "Arquivado"

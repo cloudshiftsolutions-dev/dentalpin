@@ -193,6 +193,27 @@
     "profession": "Foglalkozás",
     "workplace": "Munkahely",
     "years": "év",
+    "age": "Életkor",
+    "ageUnit": "Év",
+    "ageHelp": "Ha a pontos születési dátum nem ismert, adja meg az életkort, és egy hozzávetőleges dátum kerül kitöltésre.",
+    "createAction": "Páciens létrehozása",
+    "addressForm": {
+      "title": "Cím",
+      "street": "Utca, házszám",
+      "city": "Város / település",
+      "postalCode": "Irányítószám",
+      "province": "Megye / régió",
+      "country": "Ország"
+    },
+    "validation": {
+      "firstName": "Adja meg a páciens keresztnevét.",
+      "lastName": "Adja meg a páciens vezetéknevét.",
+      "phone": "Adjon meg érvényes telefonszámot csak számjegyekkel, például +36 30 123 4567. Betűk nem megengedettek.",
+      "email": "Adjon meg teljes e-mail-címet domainnel, például gmail.com.",
+      "dateOfBirth": "Adjon meg olyan születési dátumot, amely nem a jövőben van.",
+      "age": "Adja meg az életkort egész években 0 és {max} között.",
+      "fixErrors": "Mentés előtt ellenőrizze a megjelölt mezőket."
+    },
     "status": {
       "active": "Aktív",
       "archived": "Archivált"

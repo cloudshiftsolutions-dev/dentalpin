@@ -156,6 +156,24 @@ export function computeAge(dateOfBirth: string | null | undefined): number | nul
   return years
 }
 
+export const MAX_PATIENT_AGE = 120
+
+/**
+ * Approximate ISO date of birth for a patient who only knows their age:
+ * today's day and month, ``age`` years back, so ``computeAge`` returns
+ * exactly ``age`` today. ``null`` for anything that isn't a whole number
+ * of years in range.
+ */
+export function dateOfBirthFromAge(age: number | null | undefined, today: Date = new Date()): string | null {
+  if (age === null || age === undefined || !Number.isInteger(age)) return null
+  if (age < 0 || age > MAX_PATIENT_AGE) return null
+  const year = String(today.getFullYear() - age).padStart(4, '0')
+  const month = String(today.getMonth() + 1).padStart(2, '0')
+  // 29 Feb has no counterpart in most years; the 28th keeps the age exact.
+  const day = today.getMonth() === 1 && today.getDate() === 29 ? '28' : String(today.getDate()).padStart(2, '0')
+  return `${year}-${month}-${day}`
+}
+
 export function isMinorPatient(dateOfBirth: string | null | undefined): boolean {
   const age = computeAge(dateOfBirth)
   return age !== null && age < 18

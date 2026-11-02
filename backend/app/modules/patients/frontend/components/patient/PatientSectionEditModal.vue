@@ -9,6 +9,14 @@ import type {
   PatientBillingAddress
 } from '~~/app/types'
 import { errorMessage } from '~~/app/utils/error'
+import {
+  isValidDateOfBirth,
+  isValidEmail,
+  isValidPhone,
+  PATIENT_PHONE_MAX_LENGTH
+} from '~~/app/utils/contactValidation'
+import { emptyPatientAddress, patientAddressPayload } from '../../utils/patientAddress'
+import { buildGenderOptions, type PatientGender } from '../../utils/patientGender'
 
 type SectionType = 'demographics' | 'emergency' | 'guardian' | 'billing' | 'medical'
 
@@ -54,7 +62,7 @@ const demographicsForm = reactive({
   date_of_birth: '',
   notes: '',
   do_not_contact: false as boolean,
-  gender: undefined as string | undefined,
+  gender: undefined as PatientGender | undefined,
   national_id: '',
   national_id_type: undefined as string | undefined,
   profession: '',
@@ -89,13 +97,37 @@ const billingForm = reactive({
   } as PatientBillingAddress
 })
 
-// Gender options
-const genderOptions = computed(() => [
-  { label: t('patients.gender.male'), value: 'male' },
-  { label: t('patients.gender.female'), value: 'female' },
-  { label: t('patients.gender.other'), value: 'other' },
-  { label: t('patients.gender.preferNotSay'), value: 'prefer_not_say' }
-])
+const clinicCountry = useClinicCountry()
+
+const genderOptions = computed(() => buildGenderOptions(t))
+
+// Demographics validation: errors show on blur or after a save attempt.
+type DemographicsField = 'phone' | 'email' | 'date_of_birth'
+const submitted = ref(false)
+const touched = ref<Partial<Record<DemographicsField, boolean>>>({})
+const ageInvalid = ref(false)
+
+const demographicsErrors = computed<Partial<Record<DemographicsField, string>>>(() => {
+  const errors: Partial<Record<DemographicsField, string>> = {}
+  if (!isValidPhone(demographicsForm.phone, { maxLength: PATIENT_PHONE_MAX_LENGTH })) {
+    errors.phone = t('patients.validation.phone')
+  }
+  if (demographicsForm.email.trim() && !isValidEmail(demographicsForm.email)) {
+    errors.email = t('patients.validation.email')
+  }
+  if (!isValidDateOfBirth(demographicsForm.date_of_birth)) {
+    errors.date_of_birth = t('patients.validation.dateOfBirth')
+  }
+  return errors
+})
+
+function fieldError(field: DemographicsField): string | undefined {
+  return submitted.value || touched.value[field] ? demographicsErrors.value[field] : undefined
+}
+
+function touch(field: DemographicsField) {
+  touched.value = { ...touched.value, [field]: true }
+}
 
 // National ID type options
 const nationalIdTypeOptions = computed(() => [
@@ -113,6 +145,9 @@ watch(() => props.open, (isOpen) => {
 
 function initializeForm() {
   if (props.section === 'demographics') {
+    submitted.value = false
+    touched.value = {}
+    ageInvalid.value = false
     demographicsForm.first_name = props.patient.first_name
     demographicsForm.last_name = props.patient.last_name
     demographicsForm.phone = props.patient.phone || ''
@@ -126,7 +161,7 @@ function initializeForm() {
     demographicsForm.profession = props.patient.profession || ''
     demographicsForm.workplace = props.patient.workplace || ''
     demographicsForm.preferred_language = props.patient.preferred_language || 'es'
-    demographicsForm.address = props.patient.address || { street: '', city: '', postal_code: '', province: '', country: 'ES' }
+    demographicsForm.address = { ...emptyPatientAddress(clinicCountry.value), ...props.patient.address }
   } else if (props.section === 'emergency') {
     emergencyForm.value = props.patient.emergency_contact ? { ...props.patient.emergency_contact } : null
   } else if (props.section === 'guardian') {
@@ -149,6 +184,14 @@ async function handleSave() {
     return
   }
 
+  if (props.section === 'demographics') {
+    submitted.value = true
+    if (Object.keys(demographicsErrors.value).length || ageInvalid.value) {
+      toast.add({ title: t('patients.validation.fixErrors'), color: 'warning' })
+      return
+    }
+  }
+
   isSubmitting.value = true
 
   try {
@@ -157,12 +200,12 @@ async function handleSave() {
     let method: 'put' | 'del' = 'put'
 
     if (props.section === 'demographics') {
-      const address = demographicsForm.address?.street ? demographicsForm.address : null
+      const address = patientAddressPayload(demographicsForm.address)
       updateData = {
         first_name: demographicsForm.first_name,
         last_name: demographicsForm.last_name,
-        phone: demographicsForm.phone || null,
-        email: demographicsForm.email || null,
+        phone: demographicsForm.phone.trim() || null,
+        email: demographicsForm.email.trim() || null,
         date_of_birth: demographicsForm.date_of_birth || null,
         notes: demographicsForm.notes || null,
         do_not_contact: demographicsForm.do_not_contact,
@@ -236,7 +279,7 @@ async function handleSave() {
 
 const canSave = computed(() => {
   if (props.section === 'demographics') {
-    return demographicsForm.first_name && demographicsForm.last_name
+    return Boolean(demographicsForm.first_name.trim() && demographicsForm.last_name.trim())
   }
   return true
 })
@@ -289,24 +332,42 @@ const canSave = computed(() => {
                 required
               />
             </UFormField>
-            <UFormField :label="t('patients.phone')">
+            <UFormField
+              :label="t('patients.phone')"
+              :error="fieldError('phone')"
+            >
               <UInput
                 v-model="demographicsForm.phone"
                 type="tel"
+                inputmode="tel"
+                autocomplete="tel"
+                dir="ltr"
+                :maxlength="PATIENT_PHONE_MAX_LENGTH"
+                class="w-full"
+                @blur="touch('phone')"
               />
             </UFormField>
-            <UFormField :label="t('patients.email')">
+            <UFormField
+              :label="t('patients.email')"
+              :error="fieldError('email')"
+            >
               <UInput
                 v-model="demographicsForm.email"
                 type="email"
+                autocomplete="email"
+                dir="ltr"
+                maxlength="254"
+                class="w-full"
+                @blur="touch('email')"
               />
             </UFormField>
-            <UFormField :label="t('patients.dateOfBirth')">
-              <UInput
-                v-model="demographicsForm.date_of_birth"
-                type="date"
-              />
-            </UFormField>
+            <PatientBirthAgeFields
+              v-model:date-of-birth="demographicsForm.date_of_birth"
+              v-model:age-invalid="ageInvalid"
+              :dob-error="fieldError('date_of_birth')"
+              class="md:col-span-2"
+              @blur-dob="touch('date_of_birth')"
+            />
             <UFormField :label="t('patients.gender.label')">
               <USelect
                 v-model="demographicsForm.gender"
@@ -334,6 +395,7 @@ const canSave = computed(() => {
               <UInput v-model="demographicsForm.workplace" />
             </UFormField>
           </div>
+          <PatientAddressFields v-model="demographicsForm.address" />
           <UFormField :label="t('patients.notes')">
             <UTextarea
               v-model="demographicsForm.notes"

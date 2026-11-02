@@ -182,6 +182,8 @@ export interface PatientCreate {
   date_of_birth?: string
   notes?: string
   do_not_contact?: boolean
+  gender?: 'male' | 'female' | 'other' | 'prefer_not_say'
+  address?: PatientAddress
   national_id?: string
   national_id_type?: 'dni' | 'nie' | 'passport'
   // Billing fields

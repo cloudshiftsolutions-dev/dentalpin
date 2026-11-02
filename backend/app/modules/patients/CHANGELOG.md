@@ -2,6 +2,20 @@
 
 ## Unreleased
 
+- fix(DENTALPIN-11, DENTALPIN-36): the New patient form collects gender,
+  age and home address, and the Edit form gains age and address inputs
+  (the address was stored but had no input). Typing an age when the birth
+  date is unknown fills an approximate `date_of_birth`; age itself is not
+  stored. `PatientCreate` accepts `gender` and `address`; `gender` is now
+  a fixed set (`male`, `female`, `other`, `prefer_not_say`) on create and
+  extended update.
+- fix(DENTALPIN-36): phone numbers must be digits with optional `+ ( ) - . /`
+  and spaces, at least 6 digits. Enforced by `validate_phone` on
+  `PatientCreate`, `PatientUpdate` and the agent `create_patient` /
+  `update_patient` tools, and inline in both patient forms. CSV import
+  rows with letters in the phone now report a row error. An existing
+  patient whose stored phone breaks the rule must fix it on next save.
+
 - fix(#473): `GET /patients` takes a repeatable `status` query
   parameter, so the Archived chip lists archived patients *alone*. The
   boolean `include_archived` could only ever say "active" or "active and

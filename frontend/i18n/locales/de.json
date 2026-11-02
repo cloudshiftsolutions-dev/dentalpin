@@ -193,6 +193,27 @@
     "profession": "Beruf",
     "workplace": "Arbeitsplatz",
     "years": "Jahre",
+    "age": "Alter",
+    "ageUnit": "Jahre",
+    "ageHelp": "Ist das genaue Geburtsdatum unbekannt, geben Sie das Alter ein; ein ungefähres Datum wird eingetragen.",
+    "createAction": "Patient anlegen",
+    "addressForm": {
+      "title": "Adresse",
+      "street": "Straße und Hausnummer",
+      "city": "Stadt / Ort",
+      "postalCode": "Postleitzahl",
+      "province": "Bundesland / Provinz",
+      "country": "Land"
+    },
+    "validation": {
+      "firstName": "Geben Sie den Vornamen des Patienten ein.",
+      "lastName": "Geben Sie den Nachnamen des Patienten ein.",
+      "phone": "Geben Sie eine gültige Telefonnummer nur mit Ziffern ein, z. B. +49 151 23456789. Buchstaben sind nicht erlaubt.",
+      "email": "Geben Sie eine vollständige E-Mail-Adresse mit Domain ein, z. B. gmail.com.",
+      "dateOfBirth": "Geben Sie ein Geburtsdatum ein, das nicht in der Zukunft liegt.",
+      "age": "Geben Sie ein Alter in ganzen Jahren zwischen 0 und {max} ein.",
+      "fixErrors": "Prüfen Sie die markierten Felder vor dem Speichern."
+    },
     "status": {
       "active": "Aktiv",
       "archived": "Archiviert"

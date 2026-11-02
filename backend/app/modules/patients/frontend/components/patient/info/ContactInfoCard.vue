@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { PatientExtended } from '~~/app/types'
+import { translateCountry } from '~~/app/utils/countries'
 import CopyableField from './CopyableField.vue'
 
 interface Props {
@@ -16,7 +17,7 @@ const emit = defineEmits<{
   editGuardian: []
 }>()
 
-const { t, te } = useI18n()
+const { t, te, locale } = useI18n()
 
 const phoneHref = computed(() => (props.patient.phone ? `tel:${props.patient.phone}` : undefined))
 const emailHref = computed(() => (props.patient.email ? `mailto:${props.patient.email}` : undefined))
@@ -29,7 +30,7 @@ const formattedAddress = computed(() => {
   const cityLine = [a.postal_code, a.city].filter(Boolean).join(' ')
   if (cityLine) lines.push(cityLine)
   if (a.province) lines.push(a.province)
-  if (a.country) lines.push(a.country)
+  if (a.country) lines.push(translateCountry(locale.value, a.country))
   return lines.length ? lines : null
 })
 

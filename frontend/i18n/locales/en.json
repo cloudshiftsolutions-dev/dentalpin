@@ -193,6 +193,27 @@
     "profession": "Profession",
     "workplace": "Workplace",
     "years": "years",
+    "age": "Age",
+    "ageUnit": "Years",
+    "ageHelp": "If the exact birth date is unknown, enter the age and an approximate date is filled in.",
+    "createAction": "Create patient",
+    "addressForm": {
+      "title": "Address",
+      "street": "Street address",
+      "city": "City / town",
+      "postalCode": "Postal code",
+      "province": "State / province",
+      "country": "Country"
+    },
+    "validation": {
+      "firstName": "Enter the patient's first name.",
+      "lastName": "Enter the patient's last name.",
+      "phone": "Enter a valid phone number using digits only, for example +91 98765 43210. Letters are not allowed.",
+      "email": "Enter a complete email address with a domain, such as gmail.com.",
+      "dateOfBirth": "Enter a date of birth that is not in the future.",
+      "age": "Enter an age in whole years between 0 and {max}.",
+      "fixErrors": "Check the highlighted fields before saving."
+    },
     "status": {
       "active": "Active",
       "archived": "Archived"

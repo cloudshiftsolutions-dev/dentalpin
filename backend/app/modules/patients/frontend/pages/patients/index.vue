@@ -1,8 +1,16 @@
 <script setup lang="ts">
-import type { Patient, PatientCreate, PaginatedResponse, ApiResponse } from '~~/app/types'
+import type { Patient, PatientAddress, PatientCreate, PaginatedResponse, ApiResponse } from '~~/app/types'
 import { errorMessage } from '~~/app/utils/error'
+import {
+  isValidDateOfBirth,
+  isValidEmail,
+  isValidPhone,
+  PATIENT_PHONE_MAX_LENGTH
+} from '~~/app/utils/contactValidation'
 import { PATIENT_STATUS_ROLE, type PatientStatus } from '~~/app/config/severity'
 import { PERMISSIONS } from '~~/app/config/permissions'
+import { emptyPatientAddress, patientAddressPayload } from '../../utils/patientAddress'
+import { buildGenderOptions, type PatientGender } from '../../utils/patientGender'
 
 /**
  * /patients — list page.
@@ -186,18 +194,41 @@ function debtFilterCtx() {
   }
 }
 
-// --- Create modal (preserved) -------------------------------------------
+// --- Create modal --------------------------------------------------------
 const isCreateModalOpen = ref(false)
 const isSubmitting = ref(false)
-const newPatient = reactive<PatientCreate>({
-  first_name: '',
-  last_name: '',
-  phone: '',
-  email: '',
-  national_id: '',
-  date_of_birth: '',
-  notes: ''
-})
+const clinicCountry = useClinicCountry()
+
+interface NewPatientForm {
+  first_name: string
+  last_name: string
+  phone: string
+  email: string
+  national_id: string
+  date_of_birth: string
+  gender: PatientGender | undefined
+  address: PatientAddress
+  notes: string
+}
+
+function blankForm(): NewPatientForm {
+  return {
+    first_name: '',
+    last_name: '',
+    phone: '',
+    email: '',
+    national_id: '',
+    date_of_birth: '',
+    gender: undefined,
+    address: emptyPatientAddress(clinicCountry.value),
+    notes: ''
+  }
+}
+
+const newPatient = reactive<NewPatientForm>(blankForm())
+const ageInvalid = ref(false)
+
+const genderOptions = computed(() => buildGenderOptions(t))
 
 onMounted(() => {
   if (route.query.new === '1') {
@@ -207,29 +238,72 @@ onMounted(() => {
 })
 
 function resetForm() {
-  Object.assign(newPatient, {
-    first_name: '',
-    last_name: '',
-    phone: '',
-    email: '',
-    national_id: '',
-    date_of_birth: '',
-    notes: ''
-  })
+  Object.assign(newPatient, blankForm())
+  ageInvalid.value = false
+  submitted.value = false
+  touched.value = {}
+}
+
+// Errors surface on blur or after a save attempt, so an empty form does
+// not open covered in red.
+type CreateField = 'first_name' | 'last_name' | 'phone' | 'email' | 'date_of_birth'
+const submitted = ref(false)
+const touched = ref<Partial<Record<CreateField, boolean>>>({})
+
+const createErrors = computed<Partial<Record<CreateField, string>>>(() => {
+  const errors: Partial<Record<CreateField, string>> = {}
+  if (!newPatient.first_name.trim()) errors.first_name = t('patients.validation.firstName')
+  if (!newPatient.last_name.trim()) errors.last_name = t('patients.validation.lastName')
+  if (!isValidPhone(newPatient.phone, { maxLength: PATIENT_PHONE_MAX_LENGTH })) {
+    errors.phone = t('patients.validation.phone')
+  }
+  if (newPatient.email.trim() && !isValidEmail(newPatient.email)) {
+    errors.email = t('patients.validation.email')
+  }
+  if (!isValidDateOfBirth(newPatient.date_of_birth)) {
+    errors.date_of_birth = t('patients.validation.dateOfBirth')
+  }
+  return errors
+})
+
+watch(isCreateModalOpen, (open) => {
+  if (!open) return
+  submitted.value = false
+  touched.value = {}
+  // The clinic may load after this page; fill the country once it does.
+  const hasAddress = patientAddressPayload(newPatient.address) !== null
+  if (!hasAddress && clinicCountry.value) newPatient.address.country = clinicCountry.value
+})
+
+function fieldError(field: CreateField): string | undefined {
+  return submitted.value || touched.value[field] ? createErrors.value[field] : undefined
+}
+
+function touch(field: CreateField) {
+  touched.value = { ...touched.value, [field]: true }
 }
 
 async function createPatient() {
+  submitted.value = true
+  if (Object.keys(createErrors.value).length || ageInvalid.value) {
+    toast.add({ title: t('patients.validation.fixErrors'), color: 'warning' })
+    return
+  }
+
   isSubmitting.value = true
   try {
-    const response = await api.post<ApiResponse<Patient>>('/api/v1/patients', {
-      first_name: newPatient.first_name,
-      last_name: newPatient.last_name,
-      phone: newPatient.phone || null,
-      email: newPatient.email || null,
-      national_id: newPatient.national_id || null,
-      date_of_birth: newPatient.date_of_birth || null,
-      notes: newPatient.notes || null
-    }, { errorToast: false })
+    const payload: PatientCreate = {
+      first_name: newPatient.first_name.trim(),
+      last_name: newPatient.last_name.trim(),
+      phone: newPatient.phone.trim() || undefined,
+      email: newPatient.email.trim() || undefined,
+      national_id: newPatient.national_id.trim() || undefined,
+      date_of_birth: newPatient.date_of_birth || undefined,
+      gender: newPatient.gender,
+      address: patientAddressPayload(newPatient.address) ?? undefined,
+      notes: newPatient.notes.trim() || undefined
+    }
+    const response = await api.post<ApiResponse<Patient>>('/api/v1/patients', payload, { errorToast: false })
     toast.add({
       title: t('common.success'),
       description: t('patients.created'),
@@ -430,7 +504,7 @@ function patientCity(p: Patient): string {
 
     <UModal v-model:open="isCreateModalOpen">
       <template #content>
-        <UCard>
+        <UCard :ui="{ root: 'w-full max-w-2xl', body: 'overflow-visible' }">
           <template #header>
             <div class="flex items-center justify-between">
               <h2 class="text-h1 text-default">
@@ -447,69 +521,107 @@ function patientCity(p: Patient): string {
           </template>
 
           <form
-            class="space-y-4"
+            id="create-patient-form"
+            class="space-y-4 max-h-[65vh] overflow-y-auto pe-1"
+            novalidate
             @submit.prevent="createPatient"
           >
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <UFormField
                 :label="t('patients.firstName')"
+                :error="fieldError('first_name')"
                 required
               >
                 <UInput
                   v-model="newPatient.first_name"
-                  :placeholder="t('patients.firstName')"
-                  required
+                  autocomplete="given-name"
+                  maxlength="100"
+                  class="w-full"
+                  @blur="touch('first_name')"
                 />
               </UFormField>
               <UFormField
                 :label="t('patients.lastName')"
+                :error="fieldError('last_name')"
                 required
               >
                 <UInput
                   v-model="newPatient.last_name"
-                  :placeholder="t('patients.lastName')"
-                  required
+                  autocomplete="family-name"
+                  maxlength="100"
+                  class="w-full"
+                  @blur="touch('last_name')"
                 />
               </UFormField>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <UFormField :label="t('patients.phone')">
+              <UFormField
+                :label="t('patients.phone')"
+                :error="fieldError('phone')"
+              >
                 <UInput
                   v-model="newPatient.phone"
-                  :placeholder="t('patients.phone')"
                   type="tel"
+                  inputmode="tel"
+                  autocomplete="tel"
+                  dir="ltr"
+                  :maxlength="PATIENT_PHONE_MAX_LENGTH"
+                  placeholder="+91 98765 43210"
+                  class="w-full"
+                  @blur="touch('phone')"
                 />
               </UFormField>
-              <UFormField :label="t('patients.email')">
+              <UFormField
+                :label="t('patients.email')"
+                :error="fieldError('email')"
+              >
                 <UInput
                   v-model="newPatient.email"
-                  :placeholder="t('patients.email')"
                   type="email"
+                  autocomplete="email"
+                  dir="ltr"
+                  maxlength="254"
+                  class="w-full"
+                  @blur="touch('email')"
                 />
               </UFormField>
             </div>
 
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <UFormField :label="t('patients.gender.label')">
+                <USelect
+                  v-model="newPatient.gender"
+                  :items="genderOptions"
+                  value-key="value"
+                  label-key="label"
+                  :placeholder="t('patients.gender.select')"
+                  class="w-full"
+                />
+              </UFormField>
               <UFormField :label="t('patients.nationalId')">
                 <UInput
                   v-model="newPatient.national_id"
-                  placeholder="12345678A"
-                />
-              </UFormField>
-              <UFormField :label="t('patients.dateOfBirth')">
-                <UInput
-                  v-model="newPatient.date_of_birth"
-                  type="date"
+                  maxlength="50"
+                  class="w-full"
                 />
               </UFormField>
             </div>
+
+            <PatientBirthAgeFields
+              v-model:date-of-birth="newPatient.date_of_birth"
+              v-model:age-invalid="ageInvalid"
+              :dob-error="fieldError('date_of_birth')"
+              @blur-dob="touch('date_of_birth')"
+            />
+
+            <PatientAddressFields v-model="newPatient.address" />
 
             <UFormField :label="t('patients.notes')">
               <UTextarea
                 v-model="newPatient.notes"
-                :placeholder="t('patients.notes')"
                 :rows="3"
+                class="w-full"
               />
             </UFormField>
           </form>
@@ -524,13 +636,13 @@ function patientCity(p: Patient): string {
                 {{ t('common.cancel') }}
               </UButton>
               <UButton
+                type="submit"
+                form="create-patient-form"
                 color="primary"
                 variant="solid"
                 :loading="isSubmitting"
-                :disabled="!newPatient.first_name || !newPatient.last_name"
-                @click="createPatient"
               >
-                {{ t('common.save') }}
+                {{ t('patients.createAction') }}
               </UButton>
             </div>
           </template>

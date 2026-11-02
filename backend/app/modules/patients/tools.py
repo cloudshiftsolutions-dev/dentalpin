@@ -13,10 +13,11 @@ from __future__ import annotations
 
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.core.agents import AgentContext, Tool, ToolCategory
 
+from .schemas import validate_phone
 from .service import PatientService
 
 
@@ -43,11 +44,15 @@ class CreatePatientArgs(BaseModel):
     phone: str | None = Field(default=None, max_length=20)
     email: str | None = Field(default=None, max_length=255)
 
+    _phone = field_validator("phone")(validate_phone)
+
 
 class UpdatePatientArgs(BaseModel):
     patient_id: UUID
     phone: str | None = Field(default=None, max_length=20)
     email: str | None = Field(default=None, max_length=255)
+
+    _phone = field_validator("phone")(validate_phone)
 
 
 def _summary(patient) -> dict:

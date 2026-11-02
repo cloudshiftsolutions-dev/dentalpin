@@ -5,15 +5,51 @@ billing. Medical history, emergency contact, legal guardian and alert
 shapes live in ``app.modules.patients_clinical.schemas``.
 """
 
+import re
 from datetime import date, datetime
+from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, ConfigDict, EmailStr, Field
+from pydantic import BaseModel, ConfigDict, EmailStr, Field, field_validator
+
+Gender = Literal["male", "female", "other", "prefer_not_say"]
+
+# Same rule as the frontend ``isValidPhone`` (app/utils/contactValidation.ts):
+# digits plus common punctuation, at least 6 digits. Width is capped by the
+# ``patients.phone`` column via ``max_length=20`` on each field.
+_PHONE_ALLOWED = re.compile(r"^[0-9+()\-./\s]+$")
+_PHONE_MIN_DIGITS = 6
+
+
+def validate_phone(value: str | None) -> str | None:
+    """Reject letters and too-short numbers; blank becomes ``None``."""
+    if value is None:
+        return None
+    candidate = value.strip()
+    if not candidate:
+        return None
+    if not _PHONE_ALLOWED.match(candidate):
+        raise ValueError(
+            "Enter a valid phone number using digits only. "
+            "A leading +, spaces, dashes and brackets are allowed."
+        )
+    if sum(ch.isdigit() for ch in candidate) < _PHONE_MIN_DIGITS:
+        raise ValueError(f"Enter a phone number with at least {_PHONE_MIN_DIGITS} digits.")
+    return candidate
+
 
 # --- Billing -------------------------------------------------------------
 
 
 class BillingAddress(BaseModel):
+    street: str | None = None
+    city: str | None = None
+    postal_code: str | None = None
+    province: str | None = None
+    country: str = "ES"
+
+
+class PatientAddress(BaseModel):
     street: str | None = None
     city: str | None = None
     postal_code: str | None = None
@@ -32,12 +68,16 @@ class PatientCreate(BaseModel):
     date_of_birth: date | None = None
     notes: str | None = None
     do_not_contact: bool = False
+    gender: Gender | None = None
+    address: PatientAddress | None = None
     national_id: str | None = Field(default=None, max_length=50)
     national_id_type: str | None = Field(default=None, max_length=20)
     billing_name: str | None = Field(default=None, max_length=200)
     billing_tax_id: str | None = Field(default=None, max_length=50)
     billing_address: BillingAddress | None = None
     billing_email: EmailStr | None = None
+
+    _phone = field_validator("phone")(validate_phone)
 
 
 class PatientUpdate(BaseModel):
@@ -53,6 +93,8 @@ class PatientUpdate(BaseModel):
     billing_tax_id: str | None = Field(default=None, max_length=50)
     billing_address: BillingAddress | None = None
     billing_email: EmailStr | None = None
+
+    _phone = field_validator("phone")(validate_phone)
 
 
 class PatientResponse(BaseModel):
@@ -92,14 +134,6 @@ class PatientBrief(BaseModel):
 # --- Extended demographics ----------------------------------------------
 
 
-class PatientAddress(BaseModel):
-    street: str | None = None
-    city: str | None = None
-    postal_code: str | None = None
-    province: str | None = None
-    country: str = "ES"
-
-
 class PatientExtendedResponse(PatientResponse):
     gender: str | None = None
     national_id: str | None = None
@@ -112,7 +146,7 @@ class PatientExtendedResponse(PatientResponse):
 
 
 class PatientExtendedUpdate(PatientUpdate):
-    gender: str | None = Field(default=None, max_length=20)
+    gender: Gender | None = None
     national_id: str | None = Field(default=None, max_length=50)
     national_id_type: str | None = Field(default=None, max_length=20)
     profession: str | None = Field(default=None, max_length=100)
