@@ -198,6 +198,10 @@ export default defineNuxtConfig({
     clientBundle: {
       scan: true,
       sizeLimitKb: 512
-    }
+    },
+    // Icons missing from the client bundle are fetched from this endpoint.
+    // It must sit outside /api/*: every reverse proxy in front of DentalPin
+    // sends /api/* to the backend, which 404s and leaves icons blank.
+    localApiEndpoint: '/_nuxt_icon'
   }
 })
