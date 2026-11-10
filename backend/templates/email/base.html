@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="{{ locale | default('es') }}" dir="{{ 'rtl' if locale == 'ar' else 'ltr' }}">
+<html lang="{{ locale | default('en') }}" dir="{{ 'rtl' if locale == 'ar' else 'ltr' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -250,7 +250,19 @@
             <!-- Footer -->
             <div class="email-footer">
                 {% block footer %}
-                <p>{{ footer_sent_by | default('Este email fue enviado por ' ~ (clinic_name | default('DentalPin'))) }}</p>
+                {% set sent_by_label = {
+                    'en': 'This email was sent by',
+                    'es': 'Este email fue enviado por',
+                    'fr': 'Cet e-mail a été envoyé par',
+                    'de': 'Diese E-Mail wurde gesendet von',
+                    'it': 'Questa email è stata inviata da',
+                    'pt': 'Este email foi enviado por',
+                    'pl': 'Nadawca tej wiadomości:',
+                    'hu': 'Az e-mail küldője:',
+                    'ta': 'இந்த மின்னஞ்சலை அனுப்பியவர்:',
+                    'ar': 'أُرسلت هذه الرسالة من'
+                } %}
+                <p>{{ footer_sent_by | default(sent_by_label.get(locale, sent_by_label['en']) ~ ' ' ~ (clinic_name | default('DentalPin'))) }}</p>
                 {% if clinic_phone %}
                 <p>Tel: <span dir="ltr">{{ clinic_phone }}</span></p>
                 {% endif %}
