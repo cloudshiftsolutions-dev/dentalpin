@@ -1627,6 +1627,7 @@
     "odontogramType": "Typ zabiegu",
     "clinicalCategory": "Kategoria kliniczna",
     "systemCategoryLocked": "Zabiegi systemowe zachowują swoją kategorię.",
+    "systemStructureLocked": "Zabieg systemowy: strategia cenowa, zakres i cechy kliniczne są stałe. Ceny, VAT, nazwy, czas trwania i sesje można edytować. Aby użyć innej strategii cenowej, utwórz nowy zabieg.",
     "clinicalCategoryHelp": "Wybierz kategorię, aby zawęzić rodzaje zabiegów, albo wybierz rodzaj, a kategoria uzupełni się sama.",
     "treatmentTypeRequired": "Wybierz rodzaj zabiegu, aby pojawił się na diagramie zębów, albo ustaw kategorię kliniczną na „Brak powiązania”.",
     "clinicalCategoryRequired": "Wybierz kategorię kliniczną dla tego rodzaju zabiegu.",

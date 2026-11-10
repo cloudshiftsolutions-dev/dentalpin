@@ -42,6 +42,17 @@ onMounted(() => {
 const isCreateMode = computed(() => !props.item)
 const isSystem = computed(() => !isCreateMode.value && props.item?.is_system)
 
+// Mirrors SYSTEM_ITEM_LOCKED_FIELDS in catalog/router.py: the seeder owns
+// these on system items, so they are never sent when one is saved.
+const SYSTEM_LOCKED_FIELDS = [
+  'internal_code',
+  'category_id',
+  'pricing_strategy',
+  'treatment_scope',
+  'is_diagnostic',
+  'requires_surfaces'
+] as const
+
 // Tabs
 type TabId = 'general' | 'pricing' | 'scheduling' | 'clinical'
 const activeTab = ref<TabId>('general')
@@ -301,13 +312,17 @@ const missingClinicalCategory = computed(() => Boolean(odontogramType.value) && 
 const clinicalHasError = computed(() => missingTreatmentType.value || missingClinicalCategory.value)
 
 watch(odontogramType, (newType) => {
-  if (newType) {
-    const category = TREATMENT_CATEGORIES.find(c => c.treatments.includes(newType))
-    if (category) {
-      clinicalCategory.value = category.key
-    }
-    formData.value.requires_surfaces = isSurfaceTreatment(newType)
+  if (!newType) return
+  // Opening a saved treatment loads its stored type; that is not a user
+  // choice, so its saved category and flags stay as they are. Deriving
+  // here flipped requires_surfaces on seeded items and the server then
+  // rejected every save as a locked-field change (DENTALPIN-47).
+  if (newType === props.item?.odontogram_mapping?.odontogram_treatment_type) return
+  const category = TREATMENT_CATEGORIES.find(c => c.treatments.includes(newType))
+  if (category) {
+    clinicalCategory.value = category.key
   }
+  if (!isSystem.value) formData.value.requires_surfaces = isSurfaceTreatment(newType)
 })
 
 const isValid = computed(() => {
@@ -339,9 +354,13 @@ function handleSubmit() {
   if (!isValid.value) return
 
   // `undefined` fields are dropped by JSON serialisation, so the form
-  // state is the payload as-is.
+  // state is the payload as-is (minus the seeder-owned fields on system items).
+  const lockedFields: readonly string[] = SYSTEM_LOCKED_FIELDS
+  const formFields: TreatmentCatalogItemUpdate = isSystem.value
+    ? Object.fromEntries(Object.entries(formData.value).filter(([key]) => !lockedFields.includes(key)))
+    : formData.value
   const payload: TreatmentCatalogItemUpdate = {
-    ...formData.value,
+    ...formFields,
     sessions: sessionsEnabled.value ? sessionsToPayload() : []
   }
   if (odontogramType.value && clinicalCategory.value) {
@@ -611,6 +630,17 @@ function handleClose() {
                 <p class="text-xs text-muted mt-2">
                   {{ t('catalog.pricingStrategy.help') }}
                 </p>
+                <p
+                  v-if="isSystem"
+                  class="text-xs text-info-accent mt-1 flex items-start gap-1.5"
+                >
+                  <UIcon
+                    name="i-lucide-lock"
+                    class="w-3.5 h-3.5 mt-0.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {{ t('catalog.systemStructureLocked') }}
+                </p>
               </div>
 
               <!-- Surface tiers -->
@@ -824,6 +854,17 @@ function handleClose() {
                     </div>
                   </button>
                 </div>
+                <p
+                  v-if="isSystem"
+                  class="text-xs text-info-accent mt-2 flex items-start gap-1.5"
+                >
+                  <UIcon
+                    name="i-lucide-lock"
+                    class="w-3.5 h-3.5 mt-0.5 shrink-0"
+                    aria-hidden="true"
+                  />
+                  {{ t('catalog.systemStructureLocked') }}
+                </p>
               </div>
 
               <!-- Characteristic toggles -->

@@ -1627,6 +1627,7 @@
     "odontogramType": "Type de traitement",
     "clinicalCategory": "Catégorie clinique",
     "systemCategoryLocked": "Les traitements système conservent leur catégorie.",
+    "systemStructureLocked": "Traitement système : la stratégie de prix, la portée et les indicateurs cliniques sont fixes. Les prix, la TVA, les noms, la durée et les séances restent modifiables. Pour une autre stratégie de prix, créez un nouveau traitement.",
     "clinicalCategoryHelp": "Choisissez une catégorie pour filtrer les types de traitement, ou choisissez un type et la catégorie se remplit.",
     "treatmentTypeRequired": "Choisissez un type de traitement pour qu'il apparaisse sur le schéma dentaire, ou mettez la catégorie clinique sur « Aucune association ».",
     "clinicalCategoryRequired": "Choisissez une catégorie clinique pour ce type de traitement.",
