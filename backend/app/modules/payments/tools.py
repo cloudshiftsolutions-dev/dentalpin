@@ -23,6 +23,7 @@ from sqlalchemy import select
 
 from app.core.agents import AgentContext, Tool, ToolCategory
 from app.core.auth.models import Clinic
+from app.core.utils.currency import DEFAULT_CURRENCY
 
 from .schemas import PaymentMethod
 from .service import LedgerService, PaymentReportsService
@@ -66,7 +67,9 @@ class PatientPaymentHistoryArgs(BaseModel):
 
 
 async def _currency(ctx: AgentContext) -> str:
-    return (await ctx.db.scalar(select(Clinic.currency).where(Clinic.id == ctx.clinic_id))) or "EUR"
+    return (
+        await ctx.db.scalar(select(Clinic.currency).where(Clinic.id == ctx.clinic_id))
+    ) or DEFAULT_CURRENCY
 
 
 async def _payments_summary(ctx: AgentContext, params: PeriodArgs) -> dict:

@@ -45,14 +45,7 @@ const correctMemo = ref('')
 const selected = computed(() => accounts.value.find(a => a.id === selectedId.value))
 const activeAccounts = computed(() => accounts.value.filter(a => a.is_active))
 
-function formatMoney(value: string | number): string {
-  const currency = currentClinic.value?.currency || 'EUR'
-  try {
-    return new Intl.NumberFormat(locale.value, { style: 'currency', currency }).format(Number(value))
-  } catch {
-    return String(value)
-  }
-}
+const { format: formatMoney } = useCurrency()
 
 function fail(e: unknown) {
   const description = errorDetail(e) ?? String(e)

@@ -22,7 +22,7 @@
             <div class="label">{{ t.name }}{% if t.tooth %} — பல் எண் {{ t.tooth }}{% endif %}</div>
         </div>
         <div style="flex: 1; text-align: right;">
-            <div class="value">{{ t.price }}</div>
+            <div class="value">{{ t.price | money }}</div>
         </div>
     </div>
     {% endfor %}
@@ -34,16 +34,16 @@
     {% if discount_amount %}
     <div class="info-row">
         <div class="label">இடைத் தொகை</div>
-        <div class="value">{{ subtotal }}</div>
+        <div class="value">{{ subtotal | money }}</div>
     </div>
     <div class="info-row">
         <div class="label">தள்ளுபடி</div>
-        <div class="value">-{{ discount_amount }}</div>
+        <div class="value">-{{ discount_amount | money }}</div>
     </div>
     {% endif %}
     <div class="info-row">
         <div class="label">மொத்தத் தொகை</div>
-        <div class="value" style="font-size: 18px; font-weight: 700;">{{ total }}</div>
+        <div class="value" style="font-size: 18px; font-weight: 700;">{{ total | money }}</div>
     </div>
     {% if validity_days %}
     <div class="info-row">

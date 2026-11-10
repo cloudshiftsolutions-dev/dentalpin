@@ -189,9 +189,9 @@ async function onRejectSubmit() {
 
 function formatMoney(amount: number | string | null | undefined, currency: string | null | undefined): string {
   const n = typeof amount === 'string' ? Number(amount) : (amount ?? 0)
-  const cur = currency || 'EUR'
+  const cur = currency || DEFAULT_CURRENCY
   try {
-    return new Intl.NumberFormat(locale.value, { style: 'currency', currency: cur }).format(n)
+    return new Intl.NumberFormat(moneyLocale(cur, locale.value), { style: 'currency', currency: cur }).format(n)
   } catch {
     return `${n.toFixed(2)} ${cur}`
   }

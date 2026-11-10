@@ -36,6 +36,7 @@ from app.core.auth.rbac import granted_permissions_for
 from app.core.email.service import EmailService
 from app.core.events import event_bus
 from app.core.events.types import EventType
+from app.core.utils.currency import DEFAULT_CURRENCY
 from app.database import async_session_maker
 
 from .bridge import COPILOT_GUARDRAILS, clinic_locale
@@ -62,6 +63,13 @@ _SUBJECT = {
 async def _clinic_name(db: AsyncSession, clinic_id: UUID) -> str:
     name = await db.scalar(text("SELECT name FROM clinics WHERE id = :id"), {"id": clinic_id})
     return name or "DentalPin"
+
+
+async def _clinic_currency(db: AsyncSession, clinic_id: UUID) -> str:
+    currency = await db.scalar(
+        text("SELECT currency FROM clinics WHERE id = :id"), {"id": clinic_id}
+    )
+    return currency or DEFAULT_CURRENCY
 
 
 async def _clinic_tz(db: AsyncSession, clinic_id: UUID) -> ZoneInfo:
@@ -141,6 +149,7 @@ async def _send_for_clinic(clinic_id: UUID, today: date, sem: asyncio.Semaphore)
                 return
             locale = await clinic_locale(db, clinic_id)
             clinic_name = await _clinic_name(db, clinic_id)
+            currency = await _clinic_currency(db, clinic_id)
             subject = _SUBJECT.get(locale, _SUBJECT["es"]).format(clinic_name=clinic_name)
             # One email per recipient, each scoped to that recipient's role.
             for raw_id in row.digest_recipient_user_ids:
@@ -163,7 +172,7 @@ async def _send_for_clinic(clinic_id: UUID, today: date, sem: asyncio.Semaphore)
                     template_key="copilot_morning_digest",
                     subject=subject,
                     locale=locale,
-                    context={**context, "clinic_name": clinic_name},
+                    context={**context, "clinic_name": clinic_name, "currency": currency},
                     db=db,
                     clinic_id=clinic_id,
                 )

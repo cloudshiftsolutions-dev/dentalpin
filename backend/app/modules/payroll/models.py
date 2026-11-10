@@ -16,6 +16,7 @@ from sqlalchemy import ForeignKey, Numeric, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID as PGUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from app.core.utils.currency import DEFAULT_CURRENCY
 from app.database import Base, TimestampMixin
 
 if TYPE_CHECKING:
@@ -32,7 +33,7 @@ class PayrollProfile(Base, TimestampMixin):
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), index=True, nullable=False)
     payment_type: Mapped[str] = mapped_column(String(20), default="monthly")
     base_amount: Mapped[Decimal | None] = mapped_column(Numeric(12, 2), nullable=True)
-    currency: Mapped[str] = mapped_column(String(3), default="EUR")
+    currency: Mapped[str] = mapped_column(String(3), default=DEFAULT_CURRENCY)
     bank_account_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
     tax_id_encrypted: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_active: Mapped[bool] = mapped_column(default=True, server_default="true")

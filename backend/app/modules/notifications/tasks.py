@@ -10,6 +10,7 @@ from uuid import UUID
 
 from sqlalchemy import and_, select
 
+from app.core.utils.currency import DEFAULT_CURRENCY
 from app.database import async_session_maker
 
 logger = logging.getLogger(__name__)
@@ -131,6 +132,7 @@ async def process_appointment_reminders() -> None:
                         "professional_name": professional_name,
                         "clinic_name": clinic.name if clinic else "DentalPin",
                         "clinic_phone": clinic.phone if clinic else None,
+                        "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                         "clinic_address": clinic.address if clinic else None,
                         "appointment_id": str(appointment.id),  # For duplicate check
                     }

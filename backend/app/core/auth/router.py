@@ -18,6 +18,7 @@ from app.config import settings
 from app.core.events import EventType, event_bus
 from app.core.plugins import module_registry
 from app.core.schemas import ApiResponse, PaginatedApiResponse
+from app.core.utils.currency import DEFAULT_CURRENCY
 from app.database import get_db
 
 from .cookies import (
@@ -185,7 +186,7 @@ async def setup(
     # No country → keep the historical defaults; an unknown country → GENERIC
     # (currency/timezone come from the client, which lets the user pick them).
     timezone = data.timezone or (preset.timezone if data.country else "Europe/Madrid")
-    currency = data.currency or (preset.currency if data.country else "EUR")
+    currency = data.currency or (preset.currency if data.country else DEFAULT_CURRENCY)
     language = data.language or preset.language
     clinic_settings: dict = {"communication_language": language}
     if data.country:

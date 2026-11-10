@@ -117,7 +117,7 @@ function applyCountry(code: string) {
   // Prefer the browser zone when the user is in the guessed country
   // (multi-zone countries like US/MX/BR); otherwise the preset's main zone.
   form.timezone = (code === guessBrowserCountry() && browserTz) || p?.timezone || browserTz || 'UTC'
-  form.currency = p?.currency || 'EUR'
+  form.currency = p?.currency || DEFAULT_CURRENCY
   showAdvanced.value = !presets.value[code]
   // Follow the preset's language until the admin picks one explicitly —
   // a browser defaulting to en-US shouldn't leave a Spanish clinic in

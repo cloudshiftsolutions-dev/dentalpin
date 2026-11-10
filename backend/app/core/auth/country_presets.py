@@ -115,7 +115,7 @@ COUNTRY_PRESETS["ES"] = CountryPreset(
     suggested_modules=("verifactu",),
 )
 
-GENERIC = CountryPreset(code="", currency="EUR", timezone="UTC", language="en")
+GENERIC = CountryPreset(code="", currency="INR", timezone="UTC", language="en")
 
 
 def get_preset(code: str | None) -> CountryPreset:

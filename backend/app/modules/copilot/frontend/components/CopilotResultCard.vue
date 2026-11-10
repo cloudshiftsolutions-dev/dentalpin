@@ -8,6 +8,7 @@ import type { SlotResult } from './CopilotSlotCard.vue'
 const props = defineProps<{ name: string, result: unknown }>()
 const { t } = useI18n()
 const { money } = useCopilotFormat()
+const { currency: clinicCurrency } = useCurrency()
 
 type Obj = Record<string, unknown>
 
@@ -50,7 +51,7 @@ const MONEY_HINT = /total|collected|invoiced|net|refunded|amount|balance/i
 
 // Shallow flatten of the result for the generic fallback.
 const genericRows = computed(() => {
-  const currency = typeof obj.value.currency === 'string' ? obj.value.currency : 'EUR'
+  const currency = typeof obj.value.currency === 'string' ? obj.value.currency : clinicCurrency.value
   const rows: { label: string, value: string }[] = []
   for (const [key, value] of Object.entries(obj.value)) {
     if (value === null || value === undefined || Array.isArray(value) || typeof value === 'object') continue

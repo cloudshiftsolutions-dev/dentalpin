@@ -33,7 +33,7 @@ const form = ref({
   phone: '',
   email: '',
   timezone: 'Europe/Madrid',
-  currency: 'EUR'
+  currency: DEFAULT_CURRENCY
 })
 
 function loadForm() {
@@ -49,7 +49,7 @@ function loadForm() {
     phone: c?.phone || '',
     email: c?.email || '',
     timezone: c?.timezone || 'Europe/Madrid',
-    currency: c?.currency || 'EUR'
+    currency: c?.currency || DEFAULT_CURRENCY
   }
 }
 

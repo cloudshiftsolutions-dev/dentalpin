@@ -7,9 +7,11 @@ selection.
 
 import logging
 from pathlib import Path
+from typing import Any
 from uuid import UUID
 
-from jinja2 import Environment, FileSystemLoader, select_autoescape
+from jinja2 import Environment, FileSystemLoader, pass_context, select_autoescape
+from jinja2.runtime import Context
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.email.providers.base import (
@@ -20,11 +22,26 @@ from app.core.email.providers.base import (
 )
 from app.core.email.providers.console import ConsoleProvider
 from app.core.email.providers.smtp import SMTPProvider
+from app.core.pdf_locales import LOCALE_BY_LANG
+from app.core.utils.currency import DEFAULT_CURRENCY, format_currency, money_locale
 
 logger = logging.getLogger(__name__)
 
 # Template directory path
 TEMPLATES_DIR = Path(__file__).parent.parent.parent.parent / "templates" / "email"
+
+
+@pass_context
+def _money_filter(context: Context, amount: Any) -> str:
+    """``{{ total | money }}`` — amount in the clinic currency from the context."""
+    if amount is None or amount == "":
+        return ""
+    currency = context.get("currency") or DEFAULT_CURRENCY
+    locale = money_locale(LOCALE_BY_LANG.get(context.get("locale") or "en"), currency)
+    try:
+        return format_currency(amount, currency, locale=locale)
+    except (TypeError, ValueError, ArithmeticError):
+        return str(amount)
 
 
 class EmailService:
@@ -84,6 +101,7 @@ class EmailService:
                 trim_blocks=True,
                 lstrip_blocks=True,
             )
+            self._jinja_env.filters["money"] = _money_filter
             logger.info(f"Email templates loaded from {TEMPLATES_DIR}")
         else:
             logger.warning(f"Email templates directory not found: {TEMPLATES_DIR}")

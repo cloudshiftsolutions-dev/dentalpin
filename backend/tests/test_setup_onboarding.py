@@ -188,7 +188,7 @@ async def test_setup_without_country_keeps_legacy_defaults(client: AsyncClient, 
     r = await client.post("/api/v1/auth/setup", json=_BASE)
     assert r.status_code == 201
     clinic = (await db_session.execute(select(Clinic))).scalar_one()
-    assert clinic.timezone == "Europe/Madrid" and clinic.currency == "EUR"
+    assert clinic.timezone == "Europe/Madrid" and clinic.currency == "INR"
     assert "country" not in clinic.settings
 
 

@@ -23,6 +23,8 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.utils.currency import DEFAULT_CURRENCY
+
 from .service import budget_treatments_context
 
 logger = logging.getLogger(__name__)
@@ -126,6 +128,7 @@ class NotificationHandlers:
                     "professional_name": professional_name,
                     "clinic_name": clinic.name if clinic else "DentalPin",
                     "clinic_phone": clinic.phone if clinic else None,
+                    "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                     "clinic_address": clinic.address if clinic else None,
                 }
 
@@ -208,6 +211,7 @@ class NotificationHandlers:
                     "cancellation_reason": cancellation_reason,
                     "clinic_name": clinic.name if clinic else "DentalPin",
                     "clinic_phone": clinic.phone if clinic else None,
+                    "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                 }
 
                 await NotificationGateway.enqueue(
@@ -258,6 +262,7 @@ class NotificationHandlers:
                     "patient_name": f"{patient.first_name} {patient.last_name}",
                     "clinic_name": clinic.name if clinic else "DentalPin",
                     "clinic_phone": clinic.phone if clinic else None,
+                    "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                     "clinic_address": clinic.address if clinic else None,
                 }
 
@@ -342,6 +347,7 @@ class NotificationHandlers:
                     "custom_message": data.get("custom_message"),
                     "clinic_name": clinic.name if clinic else "DentalPin",
                     "clinic_phone": clinic.phone if clinic else None,
+                    "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                     # Public quote link — the WhatsApp HSM carries this
                     # instead of the HTML treatments table.
                     "public_url": _public_budget_url(budget.public_token),
@@ -455,6 +461,7 @@ class NotificationHandlers:
                     "custom_message": data.get("custom_message"),
                     "clinic_name": clinic.name if clinic else "DentalPin",
                     "clinic_phone": clinic.phone if clinic else None,
+                    "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                     "clinic_address": clinic.address if clinic else None,
                 }
 
@@ -521,6 +528,7 @@ class NotificationHandlers:
                     "notes": budget.patient_notes,
                     "clinic_name": clinic.name if clinic else "DentalPin",
                     "clinic_phone": clinic.phone if clinic else None,
+                    "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                 }
 
                 await NotificationGateway.enqueue(
@@ -592,6 +600,7 @@ class NotificationHandlers:
                     "public_url": _public_budget_url(budget.public_token),
                     "clinic_name": clinic.name if clinic else "DentalPin",
                     "clinic_phone": clinic.phone if clinic else None,
+                    "currency": clinic.currency if clinic else DEFAULT_CURRENCY,
                 }
 
                 # No force_send: the clinic-level budget_reminder toggle and

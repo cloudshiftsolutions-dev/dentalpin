@@ -21,6 +21,7 @@ from uuid import UUID
 
 from sqlalchemy import func, select
 
+from app.core.utils.currency import DEFAULT_CURRENCY
 from app.modules.payments.models import PatientEarnedEntry
 
 from ..models import ImportWarning
@@ -486,7 +487,7 @@ class PaymentMapper:
         from app.core.auth.models import Clinic
 
         result = await ctx.db.execute(select(Clinic.currency).where(Clinic.id == ctx.clinic_id))
-        currency = result.scalar_one_or_none() or "EUR"
+        currency = result.scalar_one_or_none() or DEFAULT_CURRENCY
         self._currency_cache[ctx.clinic_id] = currency
         return currency
 

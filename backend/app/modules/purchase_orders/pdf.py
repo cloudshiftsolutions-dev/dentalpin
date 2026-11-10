@@ -10,7 +10,9 @@ from io import BytesIO
 from typing import TYPE_CHECKING
 
 from app.core.pdf_locales import LOCALE_BY_LANG as _LOCALE_BY_LANG
+from app.core.utils.currency import DEFAULT_CURRENCY
 from app.core.utils.currency import format_currency as _fmt_currency
+from app.core.utils.currency import money_locale as _money_locale
 
 if TYPE_CHECKING:
     from app.core.auth.models import Clinic
@@ -273,10 +275,10 @@ class PurchaseOrderPDFService:
         # Arabic mirrors the document; every other host locale is LTR (#485).
         rtl_attr = ' dir="rtl"' if locale == "ar" else ""
         status_label = labels["status_label"].get(response["status"], response["status"])
-        currency = clinic.currency if clinic else "EUR"
+        currency = clinic.currency if clinic else DEFAULT_CURRENCY
         # One map for every PDF (#441): a German order printed 1,234.56
         # while its invoice printed 1.234,56 (#485).
-        money_locale = _LOCALE_BY_LANG.get(locale, "es_ES")
+        money_locale = _money_locale(_LOCALE_BY_LANG.get(locale), currency)
 
         def money(amount: Decimal) -> str:
             return _fmt_currency(amount, currency, locale=money_locale)

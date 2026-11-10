@@ -423,6 +423,7 @@ async def send_notification(
     if clinic:
         context["clinic_name"] = clinic.name
         context["clinic_phone"] = clinic.phone
+        context["currency"] = clinic.currency
         context["clinic_address"] = clinic.address
 
     # Handle appointment-related notifications

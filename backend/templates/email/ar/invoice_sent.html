@@ -36,7 +36,7 @@
             <div class="label">{{ item.description }}{% if item.quantity > 1 %} × {{ item.quantity }}{% endif %}</div>
         </div>
         <div style="flex: 1; text-align: left;">
-            <div class="value">{{ item.line_total }}</div>
+            <div class="value">{{ item.line_total | money }}</div>
         </div>
     </div>
     {% endfor %}
@@ -47,27 +47,27 @@
     {% if total_discount %}
     <div class="info-row">
         <div class="label">المجموع الفرعي</div>
-        <div class="value">{{ subtotal }}</div>
+        <div class="value">{{ subtotal | money }}</div>
     </div>
     <div class="info-row">
         <div class="label">الخصم</div>
-        <div class="value">-{{ total_discount }}</div>
+        <div class="value">-{{ total_discount | money }}</div>
     </div>
     {% endif %}
     {% if total_tax %}
     <div class="info-row">
         <div class="label">الضريبة</div>
-        <div class="value">{{ total_tax }}</div>
+        <div class="value">{{ total_tax | money }}</div>
     </div>
     {% endif %}
     <div class="info-row">
         <div class="label">المجموع الإجمالي</div>
-        <div class="value" style="font-size: 18px; font-weight: 700;">{{ total }}</div>
+        <div class="value" style="font-size: 18px; font-weight: 700;">{{ total | money }}</div>
     </div>
     {% if balance_due and balance_due != total %}
     <div class="info-row">
         <div class="label">المبلغ المستحق</div>
-        <div class="value" style="color: #ef4444; font-weight: 700;">{{ balance_due }}</div>
+        <div class="value" style="color: #ef4444; font-weight: 700;">{{ balance_due | money }}</div>
     </div>
     {% endif %}
 </div>

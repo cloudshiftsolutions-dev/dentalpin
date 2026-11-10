@@ -13,6 +13,7 @@ from babel.numbers import format_decimal as _babel_format_decimal
 
 from app.core.pdf_locales import LOCALE_BY_LANG as _LOCALE_BY_LANG
 from app.core.utils.currency import format_currency as _fmt_currency
+from app.core.utils.currency import money_locale as _money_locale
 
 if TYPE_CHECKING:
     from app.core.auth.models import Clinic
@@ -126,7 +127,7 @@ class InvoicePDFService:
         is_credit_note = invoice.credit_note_for_id is not None
 
         # Format currency from clinic.currency, locale derived from language.
-        money_locale = _LOCALE_BY_LANG.get(locale, "es_ES")
+        money_locale = _money_locale(_LOCALE_BY_LANG.get(locale), clinic.currency)
 
         def format_currency(amount: Decimal) -> str:
             return _fmt_currency(amount, clinic.currency, locale=money_locale)

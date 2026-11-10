@@ -13,12 +13,14 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field
 
+from app.core.utils.currency import DEFAULT_CURRENCY
+
 
 class PayrollProfileCreate(BaseModel):
     user_id: UUID
     payment_type: str = Field(default="monthly", pattern="^(monthly|hourly)$")
     base_amount: Decimal | None = Field(default=None, ge=0)
-    currency: str = Field(default="EUR", min_length=3, max_length=3)
+    currency: str = Field(default=DEFAULT_CURRENCY, min_length=3, max_length=3)
     bank_account: str | None = Field(default=None, max_length=100)
     tax_id: str | None = Field(default=None, max_length=50)
     country_code: str | None = Field(default=None, min_length=2, max_length=2)
