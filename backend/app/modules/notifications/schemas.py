@@ -54,6 +54,56 @@ class EmailTemplateResponse(EmailTemplateBase):
     model_config = {"from_attributes": True}
 
 
+# ----------------------------------------------------------------------------
+# Email template editor (Settings → Communications → Email templates)
+# ----------------------------------------------------------------------------
+
+
+class EmailTemplateVariable(BaseModel):
+    """Placeholder the editor can insert; ``snippet`` is the exact Jinja text."""
+
+    name: str
+    snippet: str
+
+
+class EmailTemplateEditorSummary(BaseModel):
+    template_key: str
+    default_subject: str
+    customized_locales: list[str]
+    disabled_locales: list[str]
+
+
+class EmailTemplateEditorDetail(BaseModel):
+    template_key: str
+    locale: str
+    is_custom: bool
+    is_active: bool
+    subject: str
+    body_html: str
+    default_subject: str
+    default_body_html: str
+    variables: list[EmailTemplateVariable]
+    updated_at: datetime | None = None
+
+
+class EmailTemplateDraft(BaseModel):
+    subject: str = Field(..., min_length=1, max_length=255)
+    body_html: str = Field(..., min_length=1, max_length=200_000)
+
+
+class EmailTemplateSave(EmailTemplateDraft):
+    is_active: bool = True
+
+
+class EmailTemplatePreviewResponse(BaseModel):
+    subject: str
+    html: str
+
+
+class EmailTemplateTestResponse(BaseModel):
+    sent_to: str
+
+
 # ============================================================================
 # Notification Preference Schemas
 # ============================================================================

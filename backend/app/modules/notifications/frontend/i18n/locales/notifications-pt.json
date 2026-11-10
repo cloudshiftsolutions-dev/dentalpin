@@ -17,6 +17,99 @@
       "unsupported": "Este navegador não suporta notificações push.",
       "invalid": "Este link é inválido ou expirou. Peça um novo à clínica.",
       "error": "Não foi possível ativar as notificações. Tente novamente."
+    },
+    "emailTemplates": {
+      "cardTitle": "Email templates",
+      "cardDescription": "Edit the subject, wording and design of emails sent to patients.",
+      "listTitle": "Patient emails",
+      "listHelp": "Choose an email to edit its subject and HTML. Your version replaces the built-in email for the selected language, and you can reset it at any time.",
+      "language": "Language",
+      "whatsappNote": "WhatsApp messages use templates approved by Meta and are not changed here.",
+      "readOnly": "You can view these emails. Ask an administrator for permission to edit email templates.",
+      "loadError": "Unable to load email templates.",
+      "loadErrorHelp": "Please check your connection and try again.",
+      "retry": "Retry",
+      "status": {
+        "default": "Default",
+        "customised": "Customised",
+        "disabled": "Custom version off"
+      },
+      "types": {
+        "appointment_confirmation": {
+          "label": "Appointment confirmation",
+          "description": "Sent when an appointment is booked."
+        },
+        "appointment_reminder": {
+          "label": "Appointment reminder",
+          "description": "Sent before an upcoming appointment."
+        },
+        "appointment_cancelled": {
+          "label": "Appointment cancelled",
+          "description": "Sent when an appointment is cancelled."
+        },
+        "budget_sent": {
+          "label": "Quote sent",
+          "description": "Sent when you email a treatment quote to a patient."
+        },
+        "budget_accepted": {
+          "label": "Quote accepted",
+          "description": "Sent when a patient accepts a quote."
+        },
+        "budget_reminder": {
+          "label": "Quote reminder",
+          "description": "Sent while a quote is still waiting for an answer."
+        },
+        "invoice_sent": {
+          "label": "Invoice sent",
+          "description": "Sent when you email an invoice to a patient."
+        },
+        "recall_reminder": {
+          "label": "Recall reminder",
+          "description": "Sent when a patient is due for a check-up."
+        },
+        "welcome": {
+          "label": "Welcome email",
+          "description": "Sent to new patients."
+        }
+      },
+      "editor": {
+        "back": "All email templates",
+        "content": "Content",
+        "subject": "Subject",
+        "subjectHelp": "Placeholders are replaced with the real details when the email is sent.",
+        "placeholders": "Insert placeholder",
+        "placeholdersHelp": "Click a placeholder to insert it at the cursor in the subject or HTML.",
+        "html": "HTML",
+        "htmlHelp": "The first line keeps the clinic's branded layout (logo, footer and contact details). Remove it only to design the whole email yourself.",
+        "loadDefault": "Load default content",
+        "preview": "Preview",
+        "edit": "Edit",
+        "previewHelp": "Shown with sample patient data and your clinic details.",
+        "previewSubject": "Subject:",
+        "previewUpdating": "Updating preview…",
+        "previewFrameTitle": "Email preview",
+        "previewFailed": "The preview could not be generated.",
+        "invalid": "This template has an error",
+        "active": "Send this version to patients",
+        "activeHelp": "When off, patients receive the built-in email instead.",
+        "unsaved": "Unsaved changes",
+        "lastSaved": "Last saved {date}",
+        "save": "Save changes",
+        "saved": "Email template saved",
+        "saveFailed": "The email template could not be saved.",
+        "sendTest": "Send test to me",
+        "testSent": "Test email sent to {email}",
+        "testFailed": "The test email could not be sent",
+        "reset": "Reset to default",
+        "resetTitle": "Reset to the default email?",
+        "resetBody": "Your custom version for this language will be deleted and patients will receive the built-in email again.",
+        "resetDone": "Default email restored",
+        "resetFailed": "The email could not be reset",
+        "discard": "Discard changes",
+        "discardTitle": "Discard unsaved changes?",
+        "discardBody": "Your edits to this email have not been saved.",
+        "keepEditing": "Keep editing"
+      }
     }
   }
 }

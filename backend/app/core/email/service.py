@@ -10,8 +10,17 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
-from jinja2 import Environment, FileSystemLoader, pass_context, select_autoescape
+from jinja2 import (
+    Environment,
+    FileSystemLoader,
+    TemplateError,
+    TemplateSyntaxError,
+    meta,
+    pass_context,
+    select_autoescape,
+)
 from jinja2.runtime import Context
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.email.providers.base import (
@@ -44,6 +53,14 @@ def _money_filter(context: Context, amount: Any) -> str:
         return str(amount)
 
 
+def describe_template_error(exc: TemplateError) -> str:
+    """Human-readable template error for the editor, with the line when known."""
+    message = exc.message or exc.__class__.__name__
+    if isinstance(exc, TemplateSyntaxError) and exc.lineno:
+        return f"Line {exc.lineno}: {message}"
+    return message
+
+
 class EmailService:
     """Facade for sending emails through configured providers.
 
@@ -57,6 +74,11 @@ class EmailService:
         """Initialize the email service."""
         self._provider: EmailProvider | None = None
         self._jinja_env: Environment | None = None
+        # Clinic-written templates and subjects (editable from Settings) are
+        # untrusted input: they only ever render in the sandbox, which blocks
+        # access to Python internals.
+        self._sandbox_html_env: ImmutableSandboxedEnvironment | None = None
+        self._sandbox_text_env: ImmutableSandboxedEnvironment | None = None
         self._initialized = False
 
     def _initialize(self) -> None:
@@ -93,20 +115,88 @@ class EmailService:
                 f"Unknown email provider '{settings.EMAIL_PROVIDER}', falling back to console"
             )
 
-        # Initialize Jinja2 environment for templates
+        self._init_templates()
+        self._initialized = True
+
+    def _init_templates(self) -> None:
+        """Build the Jinja2 environments (idempotent, no provider needed)."""
+        if self._sandbox_text_env is not None:
+            return
+
+        self._sandbox_text_env = ImmutableSandboxedEnvironment(autoescape=False)
+        self._sandbox_text_env.filters["money"] = _money_filter
+
         if TEMPLATES_DIR.exists():
+            loader = FileSystemLoader(str(TEMPLATES_DIR))
             self._jinja_env = Environment(
-                loader=FileSystemLoader(str(TEMPLATES_DIR)),
+                loader=loader,
                 autoescape=select_autoescape(["html", "xml"]),
                 trim_blocks=True,
                 lstrip_blocks=True,
             )
             self._jinja_env.filters["money"] = _money_filter
+            # Same loader so clinic templates can ``{% extends "base.html" %}``.
+            self._sandbox_html_env = ImmutableSandboxedEnvironment(
+                loader=loader,
+                autoescape=True,
+                trim_blocks=True,
+                lstrip_blocks=True,
+            )
+            self._sandbox_html_env.filters["money"] = _money_filter
             logger.info(f"Email templates loaded from {TEMPLATES_DIR}")
         else:
             logger.warning(f"Email templates directory not found: {TEMPLATES_DIR}")
 
-        self._initialized = True
+    def render_custom(self, source: str, context: dict, locale: str, *, html: bool = True) -> str:
+        """Render clinic-written template source in the sandbox.
+
+        Raises ``jinja2.TemplateError`` (syntax, unsafe access, missing
+        parent template) so the editor can show the problem.
+        """
+        self._init_templates()
+        env = self._sandbox_html_env if html else self._sandbox_text_env
+        if env is None:
+            raise TemplateError("Email templates are not available on this server")
+        return env.from_string(source).render({"locale": locale, **context})
+
+    def render_subject(self, subject: str, context: dict, locale: str = "en") -> str:
+        """Render a subject line; falls back to the raw text on any template error."""
+        if "{{" not in subject and "{%" not in subject:
+            return subject
+        try:
+            rendered = self.render_custom(subject, context, locale, html=False)
+        except TemplateError as e:
+            logger.warning(f"Failed to render subject template: {e}")
+            return subject
+        return " ".join(rendered.split())
+
+    def template_variables(self, source: str) -> set[str]:
+        """Context names a template reads (for the editor's placeholder list)."""
+        self._init_templates()
+        env = self._sandbox_html_env or self._sandbox_text_env
+        if env is None:
+            return set()
+        try:
+            return meta.find_undeclared_variables(env.parse(source))
+        except TemplateError:
+            return set()
+
+    def default_source(self, template_key: str, locale: str, extension: str = "html") -> str | None:
+        """Source of the built-in template file for ``template_key``/``locale``."""
+        self._init_templates()
+        if self._jinja_env is None or self._jinja_env.loader is None:
+            return None
+        for template_path in (
+            f"{locale}/{template_key}.{extension}",
+            f"default/{template_key}.{extension}",
+            f"{template_key}.{extension}",
+        ):
+            try:
+                source, _, _ = self._jinja_env.loader.get_source(self._jinja_env, template_path)
+            except TemplateError:
+                continue
+            return source
+        return None
 
     @property
     def provider(self) -> EmailProvider:
@@ -289,13 +379,7 @@ class EmailService:
             custom_template=template_text,
         )
 
-        # Render subject if it contains template syntax
-        rendered_subject = subject
-        if "{{" in subject or "{%" in subject:
-            try:
-                rendered_subject = self._jinja_env.from_string(subject).render(context)
-            except Exception as e:
-                logger.warning(f"Failed to render subject template: {e}")
+        rendered_subject = self.render_subject(subject, context, locale)
 
         message = EmailMessage(
             to_email=to_email,
@@ -332,13 +416,15 @@ class EmailService:
         Returns:
             Rendered template string, or None if template not found.
         """
-        # If custom template provided, use it directly
+        # A broken clinic template must not stop the email: fall back to the
+        # built-in file for the same key.
         if custom_template:
             try:
-                return self._jinja_env.from_string(custom_template).render(context)
+                return self.render_custom(
+                    custom_template, context, locale, html=extension == "html"
+                )
             except Exception as e:
-                logger.error(f"Failed to render custom template: {e}")
-                return None
+                logger.error(f"Custom {template_key}.{extension} failed, using the default: {e}")
 
         if not self._jinja_env:
             logger.warning("Jinja2 environment not initialized")

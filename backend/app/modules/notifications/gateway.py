@@ -16,9 +16,11 @@ from uuid import UUID
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.email.service import email_service
 from app.core.events import EventType, event_bus
 
 from .channels import Channel, OutboundMessage, SendStatus, channel_registry
+from .email_defaults import default_subject
 from .models import CommunicationMessage
 from .service import NotificationService, resolve_clinic_communication_locale
 
@@ -201,6 +203,10 @@ class NotificationGateway:
                 db, clinic_id, notification_type, locale, channel=channel.value
             )
             subject = template.subject if template else None
+            if channel == Channel.EMAIL:
+                subject = subject or default_subject(notification_type)
+                if subject:
+                    subject = email_service.render_subject(subject, context, locale)
 
         msg = CommunicationMessage(
             clinic_id=clinic_id,
@@ -340,7 +346,9 @@ class NotificationGateway:
             patient_id=msg.patient_id,
             message_kind=msg.message_kind,
             provider_template_name=template.provider_template_name if template else None,
-            subject=template.subject if template else msg.subject,
+            subject=(template.subject if template else None)
+            or msg.subject
+            or default_subject(msg.template_key),
             body_html=template.body_html if template else None,
             body_text=(template.body_text if template else None) or msg.body_text,
         )

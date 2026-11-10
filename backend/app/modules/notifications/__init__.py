@@ -117,6 +117,7 @@ class NotificationsModule(BaseModule):
         from fastapi import APIRouter
 
         from .public_router import public_router
+        from .template_editor_router import template_editor_router
 
         # Compose authenticated + public sub-routers under one mount.
         # Public endpoints sit under ``/public/push/...`` and carry no
@@ -124,6 +125,7 @@ class NotificationsModule(BaseModule):
         # public_router precedent).
         combined = APIRouter()
         combined.include_router(router)
+        combined.include_router(template_editor_router)
         combined.include_router(public_router)
         return combined
 

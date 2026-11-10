@@ -267,7 +267,11 @@
                 <p>Tel: <span dir="ltr">{{ clinic_phone }}</span></p>
                 {% endif %}
                 {% if clinic_address %}
+                {% if clinic_address is mapping %}
+                <p class="clinic-info">{{ [clinic_address.street, clinic_address.city, clinic_address.postal_code] | select | join(', ') }}</p>
+                {% else %}
                 <p class="clinic-info">{{ clinic_address }}</p>
+                {% endif %}
                 {% endif %}
                 {% endblock %}
             </div>
