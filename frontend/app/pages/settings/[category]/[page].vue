@@ -13,6 +13,13 @@ const pagePath = computed(() => route.params.page as string)
 const category = computed(() => registry.findCategory(categoryId.value))
 const entry = computed(() => registry.findPage(categoryId.value, pagePath.value))
 
+// Module settings pages register from client-only plugins, so before
+// hydration every module page looks missing — show the skeleton, not "locked".
+const hydrated = ref(false)
+onMounted(() => {
+  hydrated.value = true
+})
+
 // External-link entries (with `to`) shouldn't be mounted here — bounce
 // to their target.
 watchEffect(() => {
@@ -53,7 +60,7 @@ const backLabel = computed(() => category.value ? t(category.value.labelKey) : t
   >
     <!-- Locked: known category gated by permission, or page exists but requires permission user lacks -->
     <div
-      v-if="!entry"
+      v-if="!entry && hydrated"
       class="rounded-[var(--radius-lg)] ring-1 ring-[var(--color-border)] bg-(--color-surface) p-8"
     >
       <EmptyState

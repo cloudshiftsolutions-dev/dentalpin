@@ -312,7 +312,7 @@ const lastSaved = computed(() =>
               color="primary"
               icon="i-lucide-save"
               :loading="saving"
-              :disabled="!canSubmit || (!isDirty && detail.is_custom)"
+              :disabled="!canSubmit || !!previewError || (!isDirty && detail.is_custom)"
               @click="save"
             >
               {{ t('notifications.emailTemplates.editor.save') }}
