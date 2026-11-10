@@ -160,31 +160,43 @@ watch(
         sessions.value = []
       }
     } else {
-      formData.value = {
-        internal_code: '',
-        category_id: props.categories[0]?.id,
-        names: { [locale.value]: '' },
-        default_price: 0,
-        cost_price: 0,
-        pricing_strategy: 'flat',
-        pricing_config: null,
-        surface_prices: null,
-        default_duration_minutes: 30,
-        requires_appointment: true,
-        vat_type_id: defaultVatType.value?.id,
-        treatment_scope: 'tooth',
-        is_diagnostic: false,
-        requires_surfaces: false,
-        is_active: true
-      }
-      odontogramType.value = undefined
-      clinicalCategory.value = undefined
-      sessionsEnabled.value = false
-      sessions.value = []
+      resetCreateForm()
     }
   },
   { immediate: true }
 )
+
+function resetCreateForm() {
+  formData.value = {
+    internal_code: '',
+    // No default: the first category ("Diagnostic") silently misfiled new
+    // treatments. The field is required, so the user picks one.
+    category_id: undefined,
+    names: { [locale.value]: '' },
+    default_price: 0,
+    cost_price: 0,
+    pricing_strategy: 'flat',
+    pricing_config: null,
+    surface_prices: null,
+    default_duration_minutes: 30,
+    requires_appointment: true,
+    vat_type_id: defaultVatType.value?.id,
+    treatment_scope: 'tooth',
+    is_diagnostic: false,
+    requires_surfaces: false,
+    is_active: true
+  }
+  odontogramType.value = undefined
+  clinicalCategory.value = undefined
+  sessionsEnabled.value = false
+  sessions.value = []
+}
+
+// The item prop stays null between two "New treatment" clicks, so the
+// watcher above doesn't re-run; reset here or the last draft reappears.
+watch(open, (v) => {
+  if (v && !props.item) resetCreateForm()
+})
 
 watch(sessionsEnabled, (enabled) => {
   if (!enabled) {
@@ -252,20 +264,41 @@ const categoryOptions = computed(() =>
   }))
 )
 
-const odontogramTypeOptions = computed<{ value: string | undefined, label: string }[]>(() => [
-  { value: undefined, label: t('catalog.noOdontogramMapping') },
-  ...ALL_TREATMENT_TYPES.map(type => ({
-    value: type,
-    label: t(`odontogram.treatments.${type}`, type)
-  }))
-])
+// Types no clinical category claims (e.g. generic ``filling``) fit any of them.
+const UNCATEGORISED_TYPES = new Set<string>(
+  ALL_TREATMENT_TYPES.filter(type => !TREATMENT_CATEGORIES.some(c => c.treatments.includes(type)))
+)
 
-const clinicalCategoryOptions = computed<{ value: string, label: string }[]>(() =>
-  TREATMENT_CATEGORIES.map(c => ({
+// A chosen clinical category narrows the treatment types to its own plus the
+// uncategorised ones; the current type stays listed so it never renders blank.
+const odontogramTypeOptions = computed<{ value: string | undefined, label: string }[]>(() => {
+  const category = TREATMENT_CATEGORIES.find(c => c.key === clinicalCategory.value)
+  const types = category
+    ? ALL_TREATMENT_TYPES.filter(type =>
+        category.treatments.includes(type) || UNCATEGORISED_TYPES.has(type) || type === odontogramType.value
+      )
+    : ALL_TREATMENT_TYPES
+  return [
+    { value: undefined, label: t('catalog.noOdontogramMapping') },
+    ...types.map(type => ({
+      value: type,
+      label: t(`odontogram.treatments.types.${type}`, type)
+    }))
+  ]
+})
+
+const clinicalCategoryOptions = computed<{ value: string | undefined, label: string }[]>(() => [
+  { value: undefined, label: t('catalog.noOdontogramMapping') },
+  ...TREATMENT_CATEGORIES.map(c => ({
     value: c.key,
     label: t(c.labelKey, c.key)
   }))
-)
+])
+
+// The chart mapping needs both halves; one on its own is silently dropped.
+const missingTreatmentType = computed(() => Boolean(clinicalCategory.value) && !odontogramType.value)
+const missingClinicalCategory = computed(() => Boolean(odontogramType.value) && !clinicalCategory.value)
+const clinicalHasError = computed(() => missingTreatmentType.value || missingClinicalCategory.value)
 
 watch(odontogramType, (newType) => {
   if (newType) {
@@ -281,6 +314,7 @@ const isValid = computed(() => {
   if (!formData.value.internal_code || !itemName.value || !formData.value.category_id) {
     return false
   }
+  if (clinicalHasError.value) return false
   if (sessionsEnabled.value) {
     if (sessions.value.length === 0) return false
     if (sessions.value.some(s => !s.label || s.default_price < 0)) return false
@@ -426,7 +460,7 @@ function handleClose() {
               />
               {{ tab.label }}
               <span
-                v-if="(tab.id === 'general' && generalHasError) || (tab.id === 'pricing' && pricingHasError)"
+                v-if="(tab.id === 'general' && generalHasError) || (tab.id === 'pricing' && pricingHasError) || (tab.id === 'clinical' && clinicalHasError)"
                 class="w-1.5 h-1.5 rounded-full bg-danger-accent absolute top-2 end-1"
               />
             </button>
@@ -459,7 +493,9 @@ function handleClose() {
 
                 <UFormField
                   :label="t('catalog.category')"
+                  :help="isSystem ? t('catalog.systemCategoryLocked') : undefined"
                   class="md:col-span-2"
+                  required
                 >
                   <USelect
                     v-model="formData.category_id"
@@ -468,6 +504,7 @@ function handleClose() {
                     label-key="label"
                     :placeholder="t('catalog.selectCategory')"
                     :disabled="isSystem"
+                    class="w-full"
                   />
                 </UFormField>
               </div>
@@ -539,6 +576,7 @@ function handleClose() {
                     value-key="value"
                     label-key="label"
                     :placeholder="t('catalog.selectVatType')"
+                    class="w-full"
                   />
                 </UFormField>
               </div>
@@ -838,23 +876,31 @@ function handleClose() {
                     {{ t('catalog.odontogramMappingDescription') }}
                   </p>
                   <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <UFormField :label="t('catalog.odontogramType')">
-                      <USelect
-                        v-model="odontogramType"
-                        :items="odontogramTypeOptions"
-                        value-key="value"
-                        label-key="label"
-                        :placeholder="t('catalog.selectOdontogramType')"
-                      />
-                    </UFormField>
-                    <UFormField :label="t('catalog.clinicalCategory')">
+                    <UFormField
+                      :label="t('catalog.clinicalCategory')"
+                      :help="missingClinicalCategory ? undefined : t('catalog.clinicalCategoryHelp')"
+                      :error="missingClinicalCategory ? t('catalog.clinicalCategoryRequired') : undefined"
+                    >
                       <USelect
                         v-model="clinicalCategory"
                         :items="clinicalCategoryOptions"
                         value-key="value"
                         label-key="label"
                         :placeholder="t('catalog.selectClinicalCategory')"
-                        :disabled="!odontogramType"
+                        class="w-full"
+                      />
+                    </UFormField>
+                    <UFormField
+                      :label="t('catalog.odontogramType')"
+                      :error="missingTreatmentType ? t('catalog.treatmentTypeRequired') : undefined"
+                    >
+                      <USelect
+                        v-model="odontogramType"
+                        :items="odontogramTypeOptions"
+                        value-key="value"
+                        label-key="label"
+                        :placeholder="t('catalog.selectOdontogramType')"
+                        class="w-full"
                       />
                     </UFormField>
                   </div>
