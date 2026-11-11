@@ -1626,7 +1626,6 @@
     "odontogramMappingDescription": "Associe este tratamento a um tipo de visualização no odontograma para que apareça na ficha do paciente.",
     "odontogramType": "Tipo de tratamento",
     "clinicalCategory": "Categoria clínica",
-    "systemCategoryLocked": "Os tratamentos do sistema mantêm a sua categoria.",
     "systemStructureLocked": "Tratamento do sistema: a estratégia de preço, o âmbito e os indicadores clínicos são fixos. Preços, IVA, nomes, duração e sessões continuam editáveis. Para outra estratégia de preço, crie um tratamento novo.",
     "clinicalCategoryHelp": "Escolha uma categoria para filtrar os tipos de tratamento, ou escolha um tipo e a categoria é preenchida.",
     "treatmentTypeRequired": "Escolha um tipo de tratamento para que apareça no odontograma, ou defina a categoria clínica como \"Sem associação\".",

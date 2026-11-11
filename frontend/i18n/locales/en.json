@@ -1626,7 +1626,6 @@
     "odontogramMappingDescription": "Associate this treatment with an odontogram visualization type so it appears in the patient chart.",
     "odontogramType": "Treatment type",
     "clinicalCategory": "Clinical category",
-    "systemCategoryLocked": "System treatments keep their category.",
     "systemStructureLocked": "System treatment: pricing strategy, scope and clinical flags are fixed. Prices, VAT, names, duration and sessions can still be edited. For a different pricing strategy, create a new treatment.",
     "clinicalCategoryHelp": "Pick a category to narrow the treatment types, or pick a treatment type and the category fills in.",
     "treatmentTypeRequired": "Choose a treatment type so this treatment appears on the dental chart, or set the clinical category to \"No association\".",

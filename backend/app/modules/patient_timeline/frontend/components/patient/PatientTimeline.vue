@@ -182,7 +182,7 @@ function getEventMeta(entry: TimelineEntry): MetaChip[] {
   const totalMoney = formatMoney(data.total)
   if (totalMoney) {
     chips.push({
-      icon: 'i-lucide-euro',
+      icon: 'i-lucide-tag',
       label: t('patients.timeline.meta.total', { amount: totalMoney })
     })
   }

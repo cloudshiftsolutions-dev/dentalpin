@@ -1626,7 +1626,6 @@
     "odontogramMappingDescription": "Verknüpfen Sie diese Behandlung mit einem Darstellungstyp im Zahnschema, damit sie in der Patientengrafik erscheint.",
     "odontogramType": "Behandlungstyp",
     "clinicalCategory": "Klinische Kategorie",
-    "systemCategoryLocked": "Systembehandlungen behalten ihre Kategorie.",
     "systemStructureLocked": "Systembehandlung: Preisstrategie, Umfang und klinische Merkmale sind fest. Preise, MwSt., Namen, Dauer und Sitzungen bleiben bearbeitbar. Für eine andere Preisstrategie legen Sie eine neue Behandlung an.",
     "clinicalCategoryHelp": "Wählen Sie eine Kategorie, um die Behandlungsarten einzugrenzen, oder wählen Sie eine Art, dann wird die Kategorie gesetzt.",
     "treatmentTypeRequired": "Wählen Sie eine Behandlungsart, damit die Behandlung im Zahnschema erscheint, oder setzen Sie die klinische Kategorie auf „Keine Zuordnung“.",

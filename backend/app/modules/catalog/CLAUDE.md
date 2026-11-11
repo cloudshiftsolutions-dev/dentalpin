@@ -68,10 +68,10 @@ None.
   point (derives preset/prices from the clinic); `seed_catalog` is the
   low-level worker.
 - **System items are partially locked** — `SYSTEM_ITEM_LOCKED_FIELDS` in
-  `router.py` (code, category, pricing strategy, scope, diagnostic,
-  surfaces) return 403 only when the value actually changes; price, cost,
+  `router.py` (code, pricing strategy, scope, diagnostic, surfaces)
+  return 403 only when the value actually changes; category, price, cost,
   VAT, names, duration, sessions and `is_active` are clinic-owned and
-  editable. Rows are per-clinic and downstream consumers snapshot the
+  editable. Re-seeding skips existing codes, so a moved item stays put. Rows are per-clinic and downstream consumers snapshot the
   price, so editing it never rewrites history (#237).
 - **Categories are mandatory on items** (`category_id` NOT NULL). Anything
   that can leave a clinic with zero categories blocks treatment creation —

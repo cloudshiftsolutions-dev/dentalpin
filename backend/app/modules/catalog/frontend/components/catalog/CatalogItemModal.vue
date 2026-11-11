@@ -48,7 +48,6 @@ const isSystem = computed(() => !isCreateMode.value && props.item?.is_system)
 // these on system items, so they are never sent when one is saved.
 const SYSTEM_LOCKED_FIELDS = [
   'internal_code',
-  'category_id',
   'pricing_strategy',
   'treatment_scope',
   'is_diagnostic',
@@ -60,7 +59,7 @@ type TabId = 'general' | 'pricing' | 'scheduling' | 'clinical'
 const activeTab = ref<TabId>('general')
 const tabs = computed(() => [
   { id: 'general' as TabId, label: t('catalog.tabs.general'), icon: 'i-lucide-info' },
-  { id: 'pricing' as TabId, label: t('catalog.tabs.pricing'), icon: 'i-lucide-euro' },
+  { id: 'pricing' as TabId, label: t('catalog.tabs.pricing'), icon: 'i-lucide-tag' },
   { id: 'scheduling' as TabId, label: t('catalog.tabs.scheduling'), icon: 'i-lucide-clock' },
   { id: 'clinical' as TabId, label: t('catalog.tabs.clinical'), icon: 'i-lucide-stethoscope' }
 ])
@@ -514,7 +513,6 @@ function handleClose() {
 
                 <UFormField
                   :label="t('catalog.category')"
-                  :help="isSystem ? t('catalog.systemCategoryLocked') : undefined"
                   class="md:col-span-2"
                   required
                 >
@@ -524,7 +522,6 @@ function handleClose() {
                     value-key="value"
                     label-key="label"
                     :placeholder="t('catalog.selectCategory')"
-                    :disabled="isSystem"
                     class="w-full"
                   />
                 </UFormField>

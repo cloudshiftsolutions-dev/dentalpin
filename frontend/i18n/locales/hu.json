@@ -1626,7 +1626,6 @@
     "odontogramMappingDescription": "Rendelje a kezelést egy fogtérkép-megjelenítési típushoz, hogy megjelenjen a páciens fogtérképén.",
     "odontogramType": "Kezeléstípus",
     "clinicalCategory": "Klinikai kategória",
-    "systemCategoryLocked": "A rendszerkezelések megtartják a kategóriájukat.",
     "systemStructureLocked": "Rendszerkezelés: az árazási mód, a hatókör és a klinikai jelzők rögzítettek. Az árak, az áfa, a nevek, az időtartam és az ülések szerkeszthetők. Más árazási módhoz hozzon létre új kezelést.",
     "clinicalCategoryHelp": "Válasszon kategóriát a kezeléstípusok szűréséhez, vagy válasszon típust, és a kategória kitöltődik.",
     "treatmentTypeRequired": "Válasszon kezeléstípust, hogy megjelenjen a fogtérképen, vagy állítsa a klinikai kategóriát „Nincs társítás” értékre.",

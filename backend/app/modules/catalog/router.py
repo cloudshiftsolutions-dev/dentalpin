@@ -390,7 +390,6 @@ async def create_item(
 SYSTEM_ITEM_LOCKED_FIELDS = frozenset(
     {
         "internal_code",
-        "category_id",
         "pricing_strategy",
         "treatment_scope",
         "is_diagnostic",
