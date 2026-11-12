@@ -118,7 +118,8 @@ watch([month, reason, status, priority, overdue, patientId], () => {
 
 function onChanged(updated: Recall) {
   const idx = items.value.findIndex(r => r.id === updated.id)
-  if (idx >= 0) items.value[idx] = { ...items.value[idx], ...updated }
+  const current = items.value[idx]
+  if (current) items.value[idx] = { ...current, ...updated, patient: updated.patient ?? current.patient }
   // Refresh stats on any state change.
   recallsApi.dashboardStats().then((res) => {
     stats.value = res.data

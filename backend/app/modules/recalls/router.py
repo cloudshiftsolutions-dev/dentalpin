@@ -23,6 +23,7 @@ from app.core.auth.dependencies import (
 )
 from app.core.schemas import ApiResponse, PaginatedApiResponse
 from app.database import get_db
+from app.modules.patients.models import Patient
 
 from .schemas import (
     AttemptCreate,
@@ -60,6 +61,13 @@ def _serialise(recall) -> RecallResponse:
     if getattr(recall, "patient", None) is not None:
         payload.patient = PatientBriefForRecall.model_validate(recall.patient)
     return payload
+
+
+async def _serialise_with_patient(db: AsyncSession, recall) -> RecallResponse:
+    """Single-recall responses carry the patient too: the list merges them into its row."""
+    if getattr(recall, "patient", None) is None:
+        recall.patient = await db.get(Patient, recall.patient_id)
+    return _serialise(recall)
 
 
 # --- List + create --------------------------------------------------------
@@ -285,7 +293,7 @@ async def update_recall(
     if not recall:
         raise HTTPException(status_code=404, detail="Recall not found")
     await db.commit()
-    return ApiResponse(data=RecallResponse.model_validate(recall))
+    return ApiResponse(data=await _serialise_with_patient(db, recall))
 
 
 @router.post("/{recall_id}/snooze", response_model=ApiResponse[RecallResponse])
@@ -307,7 +315,7 @@ async def snooze_recall(
     if not recall:
         raise HTTPException(status_code=404, detail="Recall not found")
     await db.commit()
-    return ApiResponse(data=RecallResponse.model_validate(recall))
+    return ApiResponse(data=await _serialise_with_patient(db, recall))
 
 
 @router.post("/{recall_id}/cancel", response_model=ApiResponse[RecallResponse])
@@ -328,7 +336,7 @@ async def cancel_recall(
     if not recall:
         raise HTTPException(status_code=404, detail="Recall not found")
     await db.commit()
-    return ApiResponse(data=RecallResponse.model_validate(recall))
+    return ApiResponse(data=await _serialise_with_patient(db, recall))
 
 
 @router.post("/{recall_id}/done", response_model=ApiResponse[RecallResponse])
@@ -342,7 +350,7 @@ async def mark_recall_done(
     if not recall:
         raise HTTPException(status_code=404, detail="Recall not found")
     await db.commit()
-    return ApiResponse(data=RecallResponse.model_validate(recall))
+    return ApiResponse(data=await _serialise_with_patient(db, recall))
 
 
 @router.post(
@@ -396,7 +404,7 @@ async def link_appointment(
     if not recall:
         raise HTTPException(status_code=404, detail="Recall not found")
     await db.commit()
-    return ApiResponse(data=RecallResponse.model_validate(recall))
+    return ApiResponse(data=await _serialise_with_patient(db, recall))
 
 
 @router.delete("/{recall_id}", status_code=status.HTTP_204_NO_CONTENT)
