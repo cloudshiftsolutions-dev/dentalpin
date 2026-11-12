@@ -56,6 +56,13 @@ class OrthodonticsModule(BaseModule):
     def get_permissions(self) -> list[str]:
         return ["cases.read", "cases.write", "controls.write", "settings.manage"]
 
+    def get_event_handlers(self) -> dict:
+        from app.core.events import EventType
+
+        from .events import on_treatment_added
+
+        return {EventType.ODONTOGRAM_TREATMENT_ADDED: on_treatment_added}
+
     def on_activate(self) -> None:
         from .owner_resolvers import register as register_attachment_owners
 
