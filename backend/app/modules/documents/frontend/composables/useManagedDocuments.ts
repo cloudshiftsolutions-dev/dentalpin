@@ -13,6 +13,7 @@ export interface ManagedDocument {
   id: string
   clinic_id: string
   patient_id: string
+  patient_name?: string | null
   document_type: GeneratedDocumentType
   title: string
   status: DocumentStatus

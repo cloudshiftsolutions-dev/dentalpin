@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import settings
 from app.core.events import event_bus
 from app.core.events.types import EventType
+from app.modules.patients.models import Patient
 from app.modules.patients.service import PatientService
 
 from .models import DocumentStatus, GeneratedDocument
@@ -93,8 +94,20 @@ class DocumentService:
 
         query = query.order_by(GeneratedDocument.created_at.desc())
         query = query.offset((page - 1) * page_size).limit(page_size)
-        items = (await db.execute(query)).scalars().all()
-        return list(items), total
+        items = list((await db.execute(query)).scalars().all())
+
+        patient_ids = {doc.patient_id for doc in items}
+        names: dict[uuid.UUID, str] = {}
+        if patient_ids:
+            rows = await db.execute(
+                select(Patient.id, Patient.first_name, Patient.last_name).where(
+                    Patient.clinic_id == clinic_id, Patient.id.in_(patient_ids)
+                )
+            )
+            names = {pid: f"{first} {last}".strip() for pid, first, last in rows.all()}
+        for doc in items:
+            doc.patient_name = names.get(doc.patient_id)  # type: ignore[attr-defined]
+        return items, total
 
     @staticmethod
     async def get_document(
@@ -223,13 +236,37 @@ class DocumentService:
 
         clinic = await db.get(Clinic, clinic_id)
         patient = await PatientService.get_patient(db, clinic_id, doc.patient_id)
-        issued_by = ""
-        if doc.created_by is not None:
-            from app.core.auth.models import User
+        doctor = await DocumentService._doctor_name(db, clinic_id, doc)
+        return await DocumentPDFService.generate_pdf(doc, clinic, patient, locale, doctor)
 
-            user = await db.get(User, doc.created_by)
-            issued_by = f"{user.first_name} {user.last_name}" if user else ""
-        return await DocumentPDFService.generate_pdf(doc, clinic, patient, locale, issued_by)
+    @staticmethod
+    async def _doctor_name(db: AsyncSession, clinic_id: uuid.UUID, doc: GeneratedDocument) -> str:
+        """Doctor printed on the document: the chosen one, else whoever created it.
+
+        ``content.doctor_id`` is client input, so it only counts when that user
+        is a member of this clinic.
+        """
+        from app.core.auth.models import ClinicMembership, User
+
+        chosen: uuid.UUID | None = None
+        try:
+            raw = (doc.content or {}).get("doctor_id")
+            chosen = uuid.UUID(str(raw)) if raw else None
+        except ValueError:
+            chosen = None
+
+        for user_id in (chosen, doc.created_by):
+            if user_id is None:
+                continue
+            row = await db.execute(
+                select(User.first_name, User.last_name)
+                .join(ClinicMembership, ClinicMembership.user_id == User.id)
+                .where(User.id == user_id, ClinicMembership.clinic_id == clinic_id)
+            )
+            found = row.first()
+            if found:
+                return f"{found.first_name} {found.last_name}".strip()
+        return ""
 
     @staticmethod
     async def generate_pdf(

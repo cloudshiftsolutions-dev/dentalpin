@@ -85,6 +85,10 @@
         "save": "Briefkopf speichern",
         "saved": "Briefkopf gespeichert"
       }
-    }
+    },
+    "unknownPatient": "Unknown patient",
+    "doctor": "Doctor",
+    "selectDoctor": "Select the treating doctor",
+    "doctorHelp": "Printed on the document with the doctor's name."
   }
 }

@@ -9,7 +9,7 @@ offloaded to a worker thread via ``asyncio.to_thread``.
 from __future__ import annotations
 
 import asyncio
-from datetime import UTC, datetime
+from datetime import UTC, date, datetime
 from html import escape
 from io import BytesIO
 from typing import TYPE_CHECKING
@@ -28,6 +28,13 @@ _LABELS = {
         "doc": "Documento",
         "issued": "Fecha de emisión",
         "issued_by": "Emitido por",
+        "age": "Edad",
+        "gender": "Sexo",
+        "doctor": "Doctor",
+        "years": "{n} años",
+        "male": "Masculino",
+        "female": "Femenino",
+        "gender_other": "Otro",
         "diagnosis": "Diagnóstico",
         "description": "Descripción",
         "recommendations": "Recomendaciones",
@@ -57,6 +64,13 @@ _LABELS = {
         "doc": "Document",
         "issued": "Issue date",
         "issued_by": "Issued by",
+        "age": "Age",
+        "gender": "Gender",
+        "doctor": "Doctor",
+        "years": "{n} years",
+        "male": "Male",
+        "female": "Female",
+        "gender_other": "Other",
         "diagnosis": "Diagnosis",
         "description": "Description",
         "recommendations": "Recommendations",
@@ -86,6 +100,13 @@ _LABELS = {
         "doc": "ஆவணம்",
         "issued": "வெளியிட்ட தேதி",
         "issued_by": "வழங்கியவர்",
+        "age": "வயது",
+        "gender": "பாலினம்",
+        "doctor": "மருத்துவர்",
+        "years": "{n} வயது",
+        "male": "ஆண்",
+        "female": "பெண்",
+        "gender_other": "மற்றவை",
         "diagnosis": "நோய் கண்டறிதல்",
         "description": "விளக்கம்",
         "recommendations": "பரிந்துரைகள்",
@@ -115,6 +136,13 @@ _LABELS = {
         "doc": "Document",
         "issued": "Date d'émission",
         "issued_by": "Émis par",
+        "age": "Âge",
+        "gender": "Sexe",
+        "doctor": "Médecin",
+        "years": "{n} ans",
+        "male": "Masculin",
+        "female": "Féminin",
+        "gender_other": "Autre",
         "diagnosis": "Diagnostic",
         "description": "Description",
         "recommendations": "Recommandations",
@@ -144,6 +172,13 @@ _LABELS = {
         "doc": "Documento",
         "issued": "Data de emissão",
         "issued_by": "Emitido por",
+        "age": "Idade",
+        "gender": "Sexo",
+        "doctor": "Médico",
+        "years": "{n} anos",
+        "male": "Masculino",
+        "female": "Feminino",
+        "gender_other": "Outro",
         "diagnosis": "Diagnóstico",
         "description": "Descrição",
         "recommendations": "Recomendações",
@@ -173,6 +208,13 @@ _LABELS = {
         "doc": "Dokument",
         "issued": "Ausstellungsdatum",
         "issued_by": "Ausgestellt von",
+        "age": "Alter",
+        "gender": "Geschlecht",
+        "doctor": "Arzt",
+        "years": "{n} Jahre",
+        "male": "Männlich",
+        "female": "Weiblich",
+        "gender_other": "Divers",
         "diagnosis": "Diagnose",
         "description": "Beschreibung",
         "recommendations": "Empfehlungen",
@@ -202,6 +244,13 @@ _LABELS = {
         "doc": "Dokumentum",
         "issued": "Kiállítás dátuma",
         "issued_by": "Kiállította",
+        "age": "Életkor",
+        "gender": "Nem",
+        "doctor": "Orvos",
+        "years": "{n} év",
+        "male": "Férfi",
+        "female": "Nő",
+        "gender_other": "Egyéb",
         "diagnosis": "Diagnózis",
         "description": "Leírás",
         "recommendations": "Javaslatok",
@@ -231,6 +280,13 @@ _LABELS = {
         "doc": "Dokument",
         "issued": "Data wystawienia",
         "issued_by": "Wystawił",
+        "age": "Wiek",
+        "gender": "Płeć",
+        "doctor": "Lekarz",
+        "years": "{n} lat",
+        "male": "Mężczyzna",
+        "female": "Kobieta",
+        "gender_other": "Inna",
         "diagnosis": "Rozpoznanie",
         "description": "Opis",
         "recommendations": "Zalecenia",
@@ -260,6 +316,13 @@ _LABELS = {
         "doc": "Documento",
         "issued": "Data di emissione",
         "issued_by": "Rilasciato da",
+        "age": "Età",
+        "gender": "Sesso",
+        "doctor": "Medico",
+        "years": "{n} anni",
+        "male": "Maschile",
+        "female": "Femminile",
+        "gender_other": "Altro",
         "diagnosis": "Diagnosi",
         "description": "Descrizione",
         "recommendations": "Raccomandazioni",
@@ -289,6 +352,13 @@ _LABELS = {
         "doc": "المستند",
         "issued": "تاريخ الإصدار",
         "issued_by": "صادر عن",
+        "age": "العمر",
+        "gender": "الجنس",
+        "doctor": "الطبيب",
+        "years": "{n} سنة",
+        "male": "ذكر",
+        "female": "أنثى",
+        "gender_other": "آخر",
         "diagnosis": "التشخيص",
         "description": "الوصف",
         "recommendations": "التوصيات",
@@ -371,7 +441,7 @@ class DocumentPDFService:
         parts = []
         if address.get("street"):
             parts.append(address["street"])
-        city_line = " ".join(filter(None, [address.get("postal_code"), address.get("city")]))
+        city_line = " ".join(filter(None, [address.get("city"), address.get("postal_code")]))
         if city_line:
             parts.append(city_line)
         if address.get("country"):
@@ -421,6 +491,20 @@ class DocumentPDFService:
         )
 
     @staticmethod
+    def _patient_age(patient: Patient, on: date, labels: dict) -> str:
+        born = getattr(patient, "date_of_birth", None)
+        if not born:
+            return "-"
+        years = on.year - born.year - ((on.month, on.day) < (born.month, born.day))
+        return labels["years"].format(n=max(years, 0))
+
+    @staticmethod
+    def _patient_gender(patient: Patient, labels: dict) -> str:
+        gender = getattr(patient, "gender", None)
+        key = {"male": "male", "female": "female", "other": "gender_other"}.get(gender or "")
+        return labels[key] if key else "-"
+
+    @staticmethod
     def _generate_html(
         document: GeneratedDocument,
         clinic: Clinic,
@@ -436,13 +520,12 @@ class DocumentPDFService:
             clinic_tz = ZoneInfo(clinic.timezone or "UTC")
         except (KeyError, ValueError):
             clinic_tz = UTC
-        issued_at = datetime.now(clinic_tz).strftime("%d/%m/%Y %H:%M")
+        now = datetime.now(clinic_tz)
+        issued_at = now.strftime("%d/%m/%Y %H:%M")
 
         patient_name = ""
-        patient_id = ""
         if patient is not None:
             patient_name = f"{patient.first_name} {patient.last_name}"
-            patient_id = str(patient.id)
 
         content = document.content or {}
         logo_html = ""
@@ -464,12 +547,23 @@ class DocumentPDFService:
             )
         clinic_details_html = "<br>".join(line for line in clinic_lines if line)
 
-        issued_by_html = ""
-        if issued_by:
-            issued_by_html = (
-                f'<div class="info-group"><div class="info-label">{labels["issued_by"]}</div>'
-                f'<div class="info-value">{escape(issued_by)}</div></div>'
+        def field(label: str, value: str) -> str:
+            return (
+                f'<td><div class="info-label">{escape(label)}</div>'
+                f'<div class="info-value">{escape(value or "-")}</div></td>'
             )
+
+        patient_html = (
+            '<table class="patient-grid"><tr>'
+            + field(labels["patient"], patient_name)
+            + field(labels["age"], DocumentPDFService._patient_age(patient, now.date(), labels))
+            + field(labels["gender"], DocumentPDFService._patient_gender(patient, labels))
+            + "</tr><tr>"
+            + field(labels["dob"], DocumentPDFService._patient_birth(patient))
+            + field(labels["doctor"], issued_by)
+            + field(labels["issued"], issued_at)
+            + "</tr></table>"
+        )
 
         body_html = DocumentPDFService._render_body(document.document_type, content, labels)
 
@@ -483,11 +577,15 @@ class DocumentPDFService:
             <meta charset="UTF-8">
             <title>{escape(doc_title)} — {escape(patient_name)}</title>
             <style>
+                @page {{
+                    size: A4;
+                    margin: 18mm 18mm 24mm 18mm;
+                    @bottom-center {{ content: element(footer); }}
+                }}
                 * {{ margin: 0; padding: 0; box-sizing: border-box; }}
                 body {{
                     font-family: 'Helvetica Neue', Arial, sans-serif;
                     font-size: 11pt; line-height: 1.4; color: #333;
-                    padding: 20mm;
                 }}
                 .header {{
                     display: flex; justify-content: space-between;
@@ -507,10 +605,10 @@ class DocumentPDFService:
                     margin-bottom: 10px; padding-bottom: 5px;
                     border-bottom: 1px solid #e5e7eb;
                 }}
-                .meta {{ display: flex; gap: 40px; }}
-                .info-group {{ min-width: 180px; }}
+                .patient-grid {{ table-layout: fixed; margin-bottom: 0; }}
+                .patient-grid td {{ padding: 4px 12px 8px 0; border-bottom: none; width: 33.33%; }}
                 .info-label {{ font-size: 9pt; color: #666; margin-bottom: 2px; }}
-                .info-value {{ font-weight: 500; }}
+                .info-value {{ font-weight: 500; overflow-wrap: anywhere; }}
                 table {{ width: 100%; border-collapse: collapse; margin-bottom: 20px; }}
                 th {{
                     background: #f3f4f6; padding: 8px; text-align: left;
@@ -521,11 +619,10 @@ class DocumentPDFService:
                 tr:last-child td {{ border-bottom: none; }}
                 .notes-content {{ background: #f9fafb; padding: 12px; border-radius: 8px; font-size: 10pt; }}
                 .footer {{
-                    position: fixed; bottom: 15mm; left: 20mm; right: 20mm;
+                    position: running(footer);
                     font-size: 8pt; color: #9ca3af; text-align: center;
-                    border-top: 1px solid #e5e7eb; padding-top: 10px;
+                    border-top: 1px solid #e5e7eb; padding-top: 6px; width: 100%;
                 }}
-                @media print {{ body {{ padding: 0; }} .footer {{ position: fixed; }} }}
             </style>
         </head>
         <body>
@@ -542,34 +639,16 @@ class DocumentPDFService:
                 </div>
             </div>
 
-            <div class="section">
-                <div class="section-title">{labels["patient"]}</div>
-                <div class="meta">
-                    <div class="info-group">
-                        <div class="info-label">{labels["patient"]}</div>
-                        <div class="info-value">{escape(patient_name)}</div>
-                    </div>
-                    <div class="info-group">
-                        <div class="info-label">{labels["dob"]}</div>
-                        <div class="info-value">{DocumentPDFService._patient_birth(patient)}</div>
-                    </div>
-                    <div class="info-group">
-                        <div class="info-label">{labels["issued"]}</div>
-                        <div class="info-value">{issued_at}</div>
-                    </div>
-                    {issued_by_html}
-                    <div class="info-group">
-                        <div class="info-label">ID</div>
-                        <div class="info-value">{patient_id}</div>
-                    </div>
-                </div>
-            </div>
-
-            {body_html}
-
             <div class="footer">
                 {escape(labels["generated_by"])} | {escape(header["name"])}
             </div>
+
+            <div class="section">
+                <div class="section-title">{labels["patient"]}</div>
+                {patient_html}
+            </div>
+
+            {body_html}
         </body>
         </html>
         """

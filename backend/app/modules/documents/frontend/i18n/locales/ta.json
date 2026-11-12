@@ -85,6 +85,10 @@
         "save": "முகப்பைச் சேமி",
         "saved": "முகப்பு சேமிக்கப்பட்டது"
       }
-    }
+    },
+    "unknownPatient": "Unknown patient",
+    "doctor": "Doctor",
+    "selectDoctor": "Select the treating doctor",
+    "doctorHelp": "Printed on the document with the doctor's name."
   }
 }

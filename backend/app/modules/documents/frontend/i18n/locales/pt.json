@@ -85,6 +85,10 @@
         "save": "Guardar cabeçalho",
         "saved": "Cabeçalho guardado"
       }
-    }
+    },
+    "unknownPatient": "Unknown patient",
+    "doctor": "Doctor",
+    "selectDoctor": "Select the treating doctor",
+    "doctorHelp": "Printed on the document with the doctor's name."
   }
 }

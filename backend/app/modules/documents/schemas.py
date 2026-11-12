@@ -8,8 +8,6 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-_DATE_FIELDS = ("valid_from", "valid_until")
-
 # ---------------------------------------------------------------------------
 # Create / Update schemas
 # ---------------------------------------------------------------------------
@@ -25,7 +23,14 @@ class MedicationItem(BaseModel):
     notes: str = ""
 
 
-class PrescriptionContent(BaseModel):
+class _DocumentContent(BaseModel):
+    """Fields shared by every document type."""
+
+    doctor_id: UUID | None = None
+    """Treating doctor printed on the document (a clinic professional)."""
+
+
+class PrescriptionContent(_DocumentContent):
     """Content payload for a prescription document."""
 
     diagnosis: str = ""
@@ -33,7 +38,7 @@ class PrescriptionContent(BaseModel):
     notes: str = ""
 
 
-class MedicalCertificateContent(BaseModel):
+class MedicalCertificateContent(_DocumentContent):
     """Content payload for a medical certificate."""
 
     diagnosis: str = ""
@@ -50,7 +55,7 @@ class MedicalCertificateContent(BaseModel):
         return value
 
 
-class ReferralContent(BaseModel):
+class ReferralContent(_DocumentContent):
     """Content payload for a referral letter."""
 
     referred_to: str = ""
@@ -60,7 +65,7 @@ class ReferralContent(BaseModel):
     notes: str = ""
 
 
-class RadiologyRequestContent(BaseModel):
+class RadiologyRequestContent(_DocumentContent):
     """Content payload for a radiology request."""
 
     exam_type: str = ""
@@ -105,14 +110,8 @@ class DocumentCreate(BaseModel):
         schema = CONTENT_SCHEMAS.get(str(info.data.get("document_type", "")))
         if schema is None:
             return value
-        parsed = schema.model_validate(value)
-        dumped = parsed.model_dump(exclude_none=True)
-        # ``date`` objects are not JSON-serializable for the JSONB
-        # column — normalize to ISO strings.
-        return {
-            k: v.isoformat() if k in _DATE_FIELDS and isinstance(v, date) else v
-            for k, v in dumped.items()
-        }
+        # JSON mode: dates and UUIDs land in the JSONB column as strings.
+        return schema.model_validate(value).model_dump(mode="json", exclude_none=True)
 
 
 class DocumentUpdate(BaseModel):
@@ -158,6 +157,7 @@ class DocumentResponse(BaseModel):
     id: UUID
     clinic_id: UUID
     patient_id: UUID
+    patient_name: str | None = None
     document_type: str
     title: str
     status: str

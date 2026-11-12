@@ -72,12 +72,23 @@
               class="h-5 w-5 text-muted-foreground"
             />
           </div>
-          <div>
-            <p class="font-medium">
+          <div class="min-w-0">
+            <p class="font-medium truncate">
               {{ doc.title }}
             </p>
-            <p class="text-sm text-muted-foreground">
-              {{ getDocTypeLabel(doc.document_type) }} · {{ formatDate(doc.created_at) }}
+            <p class="text-sm text-muted-foreground truncate">
+              <NuxtLink
+                :to="`/patients/${doc.patient_id}`"
+                class="inline-flex items-center gap-1 font-medium text-default hover:underline focus-visible:underline"
+              >
+                <UIcon
+                  name="i-lucide-user"
+                  class="size-3.5 text-muted-foreground"
+                  aria-hidden="true"
+                />
+                {{ doc.patient_name || t('documents.unknownPatient') }}
+              </NuxtLink>
+              · {{ getDocTypeLabel(doc.document_type) }} · {{ formatDate(doc.created_at) }}
             </p>
           </div>
         </div>

@@ -28,6 +28,18 @@
           </p>
         </UFormField>
 
+        <UFormField
+          :label="t('documents.doctor')"
+          :help="t('documents.doctorHelp')"
+        >
+          <USelect
+            v-model="form.content.doctor_id"
+            :items="doctorOptions"
+            :placeholder="t('documents.selectDoctor')"
+            class="w-full"
+          />
+        </UFormField>
+
         <!-- Document type -->
         <UFormField
           :label="t('documents.type')"
@@ -192,7 +204,26 @@ const { createDocument, updateDocument } = useManagedDocuments()
 const isEditing = computed(() => !!props.document)
 const saving = ref(false)
 
+const auth = useAuth()
+const { professionals, fetchProfessionals, getProfessionalFullName } = useProfessionals()
+
+const doctorOptions = computed(() =>
+  professionals.value.map(p => ({ label: getProfessionalFullName(p), value: p.id }))
+)
+
+// New documents default to the signed-in user when they treat patients.
+function defaultDoctorId(): string | undefined {
+  const userId = auth.user.value?.id
+  return professionals.value.some(p => p.id === userId) ? userId : undefined
+}
+
+onMounted(async () => {
+  if (professionals.value.length === 0) await fetchProfessionals()
+  if (!isEditing.value && !form.content.doctor_id) form.content.doctor_id = defaultDoctorId()
+})
+
 interface DocumentFormContent {
+  doctor_id: string | undefined
   diagnosis: string
   medications: MedicationDraft[]
   notes: string
@@ -209,6 +240,7 @@ interface DocumentFormContent {
 
 function emptyContent(): DocumentFormContent {
   return {
+    doctor_id: defaultDoctorId(),
     diagnosis: '',
     medications: [],
     notes: '',
