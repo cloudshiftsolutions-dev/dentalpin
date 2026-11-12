@@ -5,7 +5,7 @@ import {
   ATOMIC_MULTI_TOOTH_TYPES,
   MULTI_TOOTH_WRAPPER_BY_TYPE,
   TREATMENT_CATEGORIES,
-  THERAPEUTIC_CATEGORIES,
+  DIAGNOSTIC_CATEGORIES,
   getAllowedStatusesForTreatment,
   getMultiToothConfig,
   getTreatmentColor,
@@ -19,6 +19,12 @@ export type TreatmentBarMode = 'diagnosis' | 'planning' | 'full'
 /** Synthetic category key for whole-mouth / whole-arch treatments. Only surfaces
  *  in planning mode (never in diagnosis). */
 const GLOBALS_CATEGORY = 'globals'
+
+/** Clinical tab order in planning mode; unknown catalog categories go last. */
+const PLANNING_CATEGORY_ORDER = [
+  'diagnostico', 'preventivo', 'restauradora', 'endodoncia', 'periodoncia',
+  'cirugia', 'ortodoncia', 'estetica', 'protesis', 'pediatrica'
+]
 
 const props = withDefaults(defineProps<{
   /** Accepts both persisted TreatmentType values and UI-only multi-tooth keys (bridge, multiple_veneers...). */
@@ -80,13 +86,21 @@ const categories = computed(() => {
   const allCategories = [...new Set([...constantCategories, ...catalogCategories])]
 
   // Diagnosis mode: show ALL categories (dentist needs to record existing treatments too)
-  // Planning mode: show only therapeutic categories (no diagnostic conditions) + globals
+  // Planning mode: every catalog category with something plannable — its chart
+  // treatments and its whole-mouth/arch ones (Diagnostic X-rays, Cosmetic
+  // whitening…). Diagnostic conditions are never planned, so that tab only
+  // appears when the catalog has diagnostic procedures. Globals tab last.
   if (props.mode === 'planning') {
-    const therapeutic = allCategories.filter(cat =>
-      THERAPEUTIC_CATEGORIES.includes(cat as TreatmentClinicalCategory)
-    )
-    if (hasGlobalItems.value) therapeutic.push(GLOBALS_CATEGORY)
-    return therapeutic
+    const globalKeys = treatmentCatalog.globalCategoryKeys.value
+    const orderOf = (key: string) => {
+      const idx = PLANNING_CATEGORY_ORDER.indexOf(key)
+      return idx === -1 ? PLANNING_CATEGORY_ORDER.length : idx
+    }
+    const planning = [...new Set([...allCategories, ...globalKeys])]
+      .filter(cat => (DIAGNOSTIC_CATEGORIES.includes(cat as TreatmentClinicalCategory) ? globalKeys.includes(cat) : true))
+      .sort((a, b) => orderOf(a) - orderOf(b))
+    if (hasGlobalItems.value) planning.push(GLOBALS_CATEGORY)
+    return planning
   }
 
   // 'full' and 'diagnosis' modes show all categories
@@ -222,44 +236,65 @@ function globalItemToBarItem(
 }
 
 const currentTreatments = computed<TreatmentBarItem[]>(() => {
-  const catalogTreatments = treatmentCatalog.getTreatmentsForCategory(activeCategory.value)
-
-  if (catalogTreatments.length > 0) {
-    return catalogTreatments
-      // Category-grouped items always carry a mapping (unmapped globals are
-      // excluded from treatmentsByCategory); the null-check narrows the type.
-      .filter(c => c.odontogram_treatment_type != null && !isMultiToothOnlyType(c.odontogram_treatment_type))
-      .map((c) => {
-        const oType = c.odontogram_treatment_type ?? 'other'
-        const isAtomic = ATOMIC_MULTI_TOOTH_TYPES.has(oType)
-        // Fallback items from useTreatmentCatalog use the treatment type as id;
-        // only real catalog items (UUID ids) should flow into catalog_item_id.
-        const isRealCatalogItem = UUID_RE.test(c.id)
-        // Real catalog items carry localized names; fallback items have names
-        // set to the raw type string, so translate via i18n instead.
-        const label = isRealCatalogItem
-          ? (c.names[locale.value] || c.names.es || c.names.en || oType)
-          : t(`odontogram.treatments.types.${oType}`, oType)
-        const rangeLabel = formatSurfaceRangeLabel(c.surface_prices)
-        const tooltip = rangeLabel
-          ? `${label}  •  ${t('odontogram.surfacePricingHint', { range: rangeLabel })}`
-          : label
-        return {
-          key: c.id,
-          label,
-          tooltip,
-          odontogramType: oType,
-          iconKey: resolveTreatmentIconKey(oType, c.internal_code),
-          catalogItemId: isRealCatalogItem ? c.id : null,
-          isAtomicMulti: isAtomic,
-          atomicMultiIcon: isAtomic ? ATOMIC_MULTI_ICONS[oType] : undefined,
-          hasSurfacePricing: !!c.surface_prices && Object.keys(c.surface_prices).length > 0
-        }
-      })
+  const categoryKey = activeCategory.value
+  const planning = props.mode === 'planning'
+  // In planning, a category tab also offers its whole-mouth / arch items.
+  const globals = planning
+    ? treatmentCatalog.getGlobalItemsForCategory(categoryKey).map(({ item, scope }) => globalItemToBarItem(item, scope))
+    : []
+  if (planning && DIAGNOSTIC_CATEGORIES.includes(categoryKey as TreatmentClinicalCategory)) {
+    return globals
   }
 
-  // Constants fallback (catalog empty). One button per type, multi-tooth-only filtered.
-  const fallback = TREATMENT_CATEGORIES.find(c => c.key === activeCategory.value)?.treatments || []
+  const catalogTreatments = treatmentCatalog.getTreatmentsForCategory(categoryKey)
+
+  if (catalogTreatments.length > 0) {
+    return [...mappedBarItems(catalogTreatments), ...globals]
+  }
+  if (globals.length > 0) {
+    return globals
+  }
+
+  return constantBarItems(categoryKey)
+})
+
+function mappedBarItems(catalogTreatments: OdontogramTreatment[]): TreatmentBarItem[] {
+  return catalogTreatments
+    // Category-grouped items always carry a mapping (unmapped globals are
+    // excluded from treatmentsByCategory); the null-check narrows the type.
+    .filter(c => c.odontogram_treatment_type != null && !isMultiToothOnlyType(c.odontogram_treatment_type))
+    .map((c) => {
+      const oType = c.odontogram_treatment_type ?? 'other'
+      const isAtomic = ATOMIC_MULTI_TOOTH_TYPES.has(oType)
+      // Fallback items from useTreatmentCatalog use the treatment type as id;
+      // only real catalog items (UUID ids) should flow into catalog_item_id.
+      const isRealCatalogItem = UUID_RE.test(c.id)
+      // Real catalog items carry localized names; fallback items have names
+      // set to the raw type string, so translate via i18n instead.
+      const label = isRealCatalogItem
+        ? (c.names[locale.value] || c.names.es || c.names.en || oType)
+        : t(`odontogram.treatments.types.${oType}`, oType)
+      const rangeLabel = formatSurfaceRangeLabel(c.surface_prices)
+      const tooltip = rangeLabel
+        ? `${label}  •  ${t('odontogram.surfacePricingHint', { range: rangeLabel })}`
+        : label
+      return {
+        key: c.id,
+        label,
+        tooltip,
+        odontogramType: oType,
+        iconKey: resolveTreatmentIconKey(oType, c.internal_code),
+        catalogItemId: isRealCatalogItem ? c.id : null,
+        isAtomicMulti: isAtomic,
+        atomicMultiIcon: isAtomic ? ATOMIC_MULTI_ICONS[oType] : undefined,
+        hasSurfacePricing: !!c.surface_prices && Object.keys(c.surface_prices).length > 0
+      }
+    })
+}
+
+// Constants fallback (catalog empty). One button per type, multi-tooth-only filtered.
+function constantBarItems(categoryKey: string): TreatmentBarItem[] {
+  const fallback = TREATMENT_CATEGORIES.find(c => c.key === categoryKey)?.treatments || []
   return fallback
     .filter(type => !isMultiToothOnlyType(type))
     .map((type) => {
@@ -277,7 +312,7 @@ const currentTreatments = computed<TreatmentBarItem[]>(() => {
         hasSurfacePricing: false
       }
     })
-})
+}
 
 // ============================================================================
 // Globals tab: grouped rendering ("Boca completa")

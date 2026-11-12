@@ -289,6 +289,7 @@ export function useTreatmentCatalog() {
     const loc = overrideLocale || locale.value
     if (useCatalog.value) {
       const first = treatmentsByCategory.value[categoryKey]?.[0]
+        ?? treatments.value.find(t => t.category_key === categoryKey)
       if (first) {
         return first.category_names[loc] || first.category_names.es || first.category_names.en || categoryKey
       }
@@ -323,6 +324,23 @@ export function useTreatmentCatalog() {
     arch: globalArchItems.value
   }))
 
+  /** Catalog categories that own at least one whole-mouth / arch item. */
+  const globalCategoryKeys = computed(() => [
+    ...new Set(
+      [...globalMouthItems.value, ...globalArchItems.value]
+        .map(t => t.category_key)
+        .filter((key): key is string => !!key)
+    )
+  ])
+
+  /** Whole-mouth then arch items of one catalog category. */
+  function getGlobalItemsForCategory(categoryKey: string): Array<{ item: OdontogramTreatment, scope: 'mouth' | 'arch' }> {
+    return [
+      ...globalMouthItems.value.filter(t => t.category_key === categoryKey).map(item => ({ item, scope: 'mouth' as const })),
+      ...globalArchItems.value.filter(t => t.category_key === categoryKey).map(item => ({ item, scope: 'arch' as const }))
+    ]
+  }
+
   return {
     // State
     treatments,
@@ -356,6 +374,8 @@ export function useTreatmentCatalog() {
     // Globals
     globalMouthItems,
     globalArchItems,
-    globalItems
+    globalItems,
+    globalCategoryKeys,
+    getGlobalItemsForCategory
   }
 }

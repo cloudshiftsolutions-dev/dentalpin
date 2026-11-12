@@ -299,13 +299,19 @@ const odontogramTypeOptions = computed<{ value: string | undefined, label: strin
   ]
 })
 
-const clinicalCategoryOptions = computed<{ value: string | undefined, label: string }[]>(() => [
-  { value: undefined, label: t('catalog.noOdontogramMapping') },
-  ...TREATMENT_CATEGORIES.map(c => ({
+// The clinic's own catalog categories (Diagnostic, Preventive… Cosmetic,
+// Pediatric), so any of them can carry chart treatments; built-in chart
+// groups the catalog lacks are still offered.
+const clinicalCategoryOptions = computed<{ value: string | undefined, label: string }[]>(() => {
+  const fromCatalog = props.categories.map(c => ({
     value: c.key,
-    label: t(c.labelKey, c.key)
+    label: c.names[locale.value] || c.names.en || c.names.es || c.key
   }))
-])
+  const builtIn = TREATMENT_CATEGORIES
+    .filter(c => !fromCatalog.some(o => o.value === c.key))
+    .map(c => ({ value: c.key, label: t(c.labelKey, c.key) }))
+  return [{ value: undefined, label: t('catalog.noOdontogramMapping') }, ...fromCatalog, ...builtIn]
+})
 
 // The chart mapping needs both halves; one on its own is silently dropped.
 const missingTreatmentType = computed(() => Boolean(clinicalCategory.value) && !odontogramType.value)
@@ -319,8 +325,10 @@ watch(odontogramType, (newType) => {
   // here flipped requires_surfaces on seeded items and the server then
   // rejected every save as a locked-field change (DENTALPIN-47).
   if (newType === props.item?.odontogram_mapping?.odontogram_treatment_type) return
+  // Fill the category from the type only when none was picked: a Cosmetic
+  // treatment drawn as a composite filling stays Cosmetic.
   const category = TREATMENT_CATEGORIES.find(c => c.treatments.includes(newType))
-  if (category) {
+  if (category && !clinicalCategory.value) {
     clinicalCategory.value = category.key
   }
   if (!isSystem.value) formData.value.requires_surfaces = isSurfaceTreatment(newType)
