@@ -308,25 +308,21 @@ const LATERAL_PATHS_BY_POSITION: Record<ToothPosition, LateralPaths> = {
       rootCenter: { x: 23, y: 55 }
     }
   },
-  // Position 4: First Premolar (tooth 14) - viewBox normalized to ~40x100 scale
+  // Position 4: First Premolar (tooth 14) - viewBox 40x125, single tapered root
   4: {
-    viewBox: '0 0 40 100',
-    crown: 'M33.75 62.5c-3.75,-4 -23.5,-4 -26.5,0 -5.25,7 -6,15.25 -6,19 -0.25,2.75 2.5,8.25 17,10 18,2 20.5,-7.5 20.5,-9.5 0,-3.5 -1,-15.25 -5.25,-19.5z',
-    roots: [
-      'M21.5 27.75c2.5,-7.75 4,-13.75 4.5,-17.75 0.25,-1.75 -1.5,-8.5 0.5,-8.5 2.25,0 8.25,8 9,13.5 0.75,5.25 -0.5,22.25 -1.25,29 -0.75,5.5 -0.75,14.25 -0.5,18 -12.5,7.5 -18,7 -26.5,0.5 0,0 2,-3.75 2.5,-12.5 0.25,-5.25 -1.5,-14.25 -1.75,-20.25 -1.25,-16.25 2.75,-27.75 5.5,-28.25 3.5,0.25 3.5,18 8,25.75l0.25 0.5'
-    ],
-    pulp: 'M19.25 38.5c0.25,1 0,1.75 1.25,2.5 1.75,-2.5 5.75,-9.25 7,-18 1.75,-11 0.75,-14.5 0.75,-15.25 0,-0.5 4,-1 2.5,14 -1.5,15.25 -4.25,21.5 -5,26.75 -0.75,5.25 -1.25,6 -1.75,13.5 -0.75,6.5 -9.25,5.25 -9.25,-0.75 0,-1.5 0,-5.25 0,-7.5 0,-2.75 -3.5,-18 -3.75,-26.25 -0.25,-6.5 0,-20.25 1.25,-21.25 1.5,-1.5 2.75,13.25 3.75,19.25 1,6.25 2.25,8.5 2.75,10.25l0.25 1.75z',
-    pulpTwoThirds: 'M18 28c0.5,1 1,2 2,1 2,-2 4,-8 5,-14 1,-8 0.5,-10 0.5,-10.5 0,-0.3 2,-0.5 1.5,8 -0.5,8 -2,14 -3,18 -1,4 -1.5,4.5 -2,8 -0.5,4 -6,3.5 -6,-0.5 0,-1 0,-3 0,-5 0,-2 -2,-12 -2.5,-18 -0.3,-5 0,-14 1,-15 1,-1 2,9 2.5,13 0.5,4 1.5,6 2,8z',
-    pulpHalf: 'M17 20c0.5,0.5 1,1.5 1.5,1 1.5,-1.5 3,-6 4,-10 0.8,-6 0.3,-8 0.3,-8.5 0,-0.2 1.5,-0.3 1,6 -0.3,5 -1.5,10 -2,13 -0.5,2.5 -1,3 -1.5,5.5 -0.3,2.5 -4,2 -4,-0.3 0,-0.5 0,-2 0,-3 0,-1.5 -1.5,-8 -2,-12 -0.2,-3 0,-10 0.7,-10.5 0.7,-0.5 1.5,6 2,9 0.3,3 1,4 1.5,6z',
+    viewBox: '0 0 40 125',
+    crown: 'M7.6 81.2C3.6 88.4 1.3 98.6 1.6 106.6C1.9 112.8 7 117.8 13 120.4C16 121.8 18.6 123.6 20.4 123.6C22.4 123.6 25 121.8 28 120.4C34 117.8 38.4 112.8 38.6 106.6C38.8 98.6 36.4 88.4 32.4 81.2C26 77.6 14 77.6 7.6 81.2Z',
+    root: 'M8.2 81.6C7.6 70 8.8 56.4 10.6 44C12.4 31.8 14.6 20 17 11.2C18.2 6.6 19.6 3 21.2 3C22.8 3 24.2 6.6 25.2 11.6C27.4 22.2 29.6 34.2 30.9 46C32.2 57.2 32.6 70 32.2 81.6C25 78.8 15.2 78.8 8.2 81.6Z',
+    pulp: 'M20.8 8C22.6 8 23.4 30 23.7 52C23.9 66 24.8 79.6 25.8 88C24.4 91.6 16.6 91.6 15.4 88C16.6 79.6 17.9 66 18.2 52C18.5 30 19 8 20.8 8Z',
     highlight: [],
-    gumLine: 'M 0,62.5 Q 20,67.5 40,62.5',
+    gumLine: 'M 0,81 Q 20,88 40,81',
     anchors: {
-      crownCenter: { x: 20, y: 75 },
-      apex: { x: 20, y: 3 },
-      beyondApex: { x: 20, y: -8 },
-      aboveCrown: { x: 20, y: 92 },
-      besideCrown: { x: 38, y: 75 },
-      rootCenter: { x: 20, y: 35 }
+      crownCenter: { x: 20, y: 100 },
+      apex: { x: 21, y: 4 },
+      beyondApex: { x: 21, y: -8 },
+      aboveCrown: { x: 20, y: 118 },
+      besideCrown: { x: 38, y: 100 },
+      rootCenter: { x: 20, y: 45 }
     }
   },
   // Position 5: Second Premolar (tooth 15) - viewBox 40x125
@@ -412,6 +408,68 @@ const LATERAL_PATHS_BY_POSITION: Record<ToothPosition, LateralPaths> = {
       aboveCrown: { x: 33, y: 100 },
       besideCrown: { x: 62, y: 82 },
       rootCenter: { x: 33, y: 35 }
+    }
+  }
+}
+
+// Lower teeth are drawn as the upper paths flipped (scaleY(-1)), which is
+// wrong where the anatomy differs: the lower first premolar has one root and
+// the lower second/third molars two (mesial + distal) instead of three.
+// Authored roots-up like the upper paths so the same flip applies.
+const LOWER_LATERAL_PATHS_BY_POSITION: Partial<Record<ToothPosition, LateralPaths>> = {
+  // Lower first premolar (34/44): rounded crown, single long root
+  4: {
+    viewBox: '0 0 40 125',
+    crown: 'M8.2 82.4C4 88.2 2.2 96.8 2.6 104.4C3 111.6 8.2 117.8 14.2 121C16.8 122.6 18.8 124 20.8 124C22.8 124 24.8 122.6 27.4 121C33.4 117.6 37.2 111.2 37.5 104C37.8 96.4 35.8 88.2 31.8 82.4C25.2 79 14.8 79 8.2 82.4Z',
+    root: 'M9.2 82.8C8.4 70.2 9.8 54.2 12 40.2C13.8 28.2 16 16.4 18.2 8.4C19.1 4.8 20 2.4 21 2.4C22 2.4 22.8 4.8 23.6 8.4C25.6 17.2 27.6 29 29.2 41C30.8 54.2 31.4 70.2 30.8 82.8C24.4 79.8 15.6 79.8 9.2 82.8Z',
+    pulp: 'M20.9 7.6C22.4 7.6 23.2 30 23.5 52C23.7 66 24.4 79.6 25.2 88.4C23.8 91.8 17.6 91.8 16.4 88.4C17.2 79.6 18 66 18.3 52C18.6 30 19.4 7.6 20.9 7.6Z',
+    highlight: [],
+    gumLine: 'M 0,82 Q 20,89 40,82',
+    anchors: {
+      crownCenter: { x: 20, y: 101 },
+      apex: { x: 21, y: 3 },
+      beyondApex: { x: 21, y: -9 },
+      aboveCrown: { x: 20, y: 119 },
+      besideCrown: { x: 38, y: 101 },
+      rootCenter: { x: 20, y: 45 }
+    }
+  },
+  // Lower second molar (37/47): two separate roots
+  7: {
+    viewBox: '0 0 66 124',
+    crown: 'M7.6 78.2C3.2 86.4 1.4 97.2 2.4 106C3.2 113.6 8 120 14.6 121.6C19.6 122.8 24.6 120.6 28 117.4C30.4 115.2 32.6 114.6 34.8 115.6C38.8 118.4 43.2 122.2 49.6 121.8C56.4 121.2 62.2 115.2 63.6 107C65 98.6 63.4 87 58.6 78.2C46 73.4 20.2 73.4 7.6 78.2Z',
+    roots: [
+      'M8 78.6C6.8 68 6.4 56 6.6 45C6.8 33 7 21 8.2 13C8.9 8.4 10.4 6 12.4 6C14.6 6 16 8.6 16.8 13.4C18.4 23 20 34 22.6 43C24.6 49.6 27.6 53.6 31 53.6C34.2 53.6 36 49 36.8 43.4C38 34.4 38.4 23 39.6 14.4C40.4 9 42 6 44.2 6C46.6 6 48.4 8.8 49.6 14C51.8 23.6 54.6 36.6 56.4 49C57.8 59 58.6 69 58.4 78.6C46 73.8 20.2 73.8 8 78.6Z'
+    ],
+    pulp: 'M12.2 12C13.6 12 14.6 22 16 33C17.4 44 19.8 54 23.4 62C25.8 66.4 38.2 66.4 40.6 62C42.8 54 43.6 42 44.2 30C44.8 20 45.4 12 46.6 12C47.8 12 48.6 22 49.4 34C50.4 50 49.8 66 47.8 78C46.8 84.2 41 87.2 33 87.2C25 87.2 19.2 84.2 17.8 78C15.2 66 12.4 48 11.2 32C10.6 22 10.8 12 12.2 12Z',
+    highlight: [],
+    gumLine: 'M 0,78 Q 33,88 66,78',
+    anchors: {
+      crownCenter: { x: 33, y: 100 },
+      apex: { x: 30, y: 5 },
+      beyondApex: { x: 30, y: -8 },
+      aboveCrown: { x: 33, y: 119 },
+      besideCrown: { x: 62, y: 100 },
+      rootCenter: { x: 33, y: 40 }
+    }
+  },
+  // Lower third molar (38/48): short converging roots
+  8: {
+    viewBox: '0 0 67 104',
+    crown: 'M8 60.8C3.4 67.4 1 77.6 2.2 86C3.4 94.2 9.4 100.6 16.4 101.6C21.6 102.4 26.4 99.6 30.2 96.8C32.4 95.2 34.6 95 36.8 96.4C41 99.6 45.6 102.6 51.4 101.8C58.6 100.8 64.2 94.4 65.2 86C66.2 77 63.6 67.4 58.6 60.8C45.4 56 21.2 56 8 60.8Z',
+    roots: [
+      'M8.6 61.2C7.6 52.4 8.2 42.4 10.4 33.4C12.6 24.4 16 16.6 20 11.4C23 7.6 26.4 6 29.4 7C31.4 7.8 32.6 10 33.6 13.2C34.6 10.6 36.4 9 38.8 9.2C42.6 9.6 46.4 13.6 49.4 19.6C53.6 28 57.4 40.4 58.4 50.6C58.8 54.6 58.6 58 58 61.2C45 56.4 21.6 56.4 8.6 61.2Z'
+    ],
+    pulp: 'M24 14C26 14 27.6 18 28.8 23C30 28 31.6 31 33.6 31C35.6 31 37.2 27 38.6 22C39.8 17.6 41 15 42.6 15C44.6 15 46 20 47 27C48.4 37 48.4 49 46.6 58C45.4 64.4 40.8 68 33.4 68C26 68 21.4 64.4 20.2 58C18.6 49 19 36 20.6 26C21.4 19.4 22.4 14 24 14Z',
+    highlight: [],
+    gumLine: 'M 0,61 Q 33,71 67,61',
+    anchors: {
+      crownCenter: { x: 33, y: 82 },
+      apex: { x: 33, y: 6 },
+      beyondApex: { x: 33, y: -7 },
+      aboveCrown: { x: 33, y: 100 },
+      besideCrown: { x: 62, y: 82 },
+      rootCenter: { x: 33, y: 34 }
     }
   }
 }
@@ -588,7 +646,11 @@ const DECIDUOUS_TO_PERMANENT_MAP: Record<number, ToothPosition> = {
 // ============================================================================
 
 export function getLateralPath(toothNumber: number): LateralPaths {
-  return LATERAL_PATHS_BY_POSITION[getShapePosition(toothNumber)]
+  const position = getShapePosition(toothNumber)
+  const lowerShape = !isDeciduousTooth(toothNumber) && !isUpperTooth(toothNumber)
+    ? LOWER_LATERAL_PATHS_BY_POSITION[position]
+    : undefined
+  return lowerShape ?? LATERAL_PATHS_BY_POSITION[position]
 }
 
 export function getOcclusalPath(toothNumber: number): OcclusalPaths {
