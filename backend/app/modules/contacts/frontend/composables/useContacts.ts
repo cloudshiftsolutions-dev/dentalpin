@@ -28,6 +28,7 @@ interface ApiPaged<T> { data: T[], total: number, page: number, page_size: numbe
 
 export interface ContactListFilters {
   contact_type?: ContactType
+  exclude_type?: ContactType
   search?: string
   page?: number
   page_size?: number

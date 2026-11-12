@@ -26,9 +26,17 @@ async def list_contacts(
     include_inactive: bool = Query(default=False),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
+    exclude_type: str | None = Query(default=None),
 ) -> PaginatedApiResponse[ContactResponse]:
     contacts, total = await ContactService.list_contacts(
-        db, ctx.clinic_id, contact_type, search, include_inactive, page, page_size
+        db,
+        ctx.clinic_id,
+        contact_type,
+        search,
+        include_inactive,
+        page,
+        page_size,
+        exclude_type=exclude_type,
     )
     return PaginatedApiResponse(
         data=[ContactResponse.model_validate(c) for c in contacts],

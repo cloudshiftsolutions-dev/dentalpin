@@ -32,6 +32,7 @@
     "defaultClinicName": "Clinic",
     "catalog": "Catalog",
     "contacts": "Contacts",
+    "labs": "Labs",
     "menu": "Menu",
     "openMenu": "Open menu",
     "close": "Close",

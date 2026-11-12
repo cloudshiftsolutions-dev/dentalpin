@@ -45,6 +45,14 @@ class ContactsModule(BaseModule):
                     "permission": "contacts.read",
                     "order": 91,
                 },
+                {
+                    "label": "nav.labs",
+                    "section": "lab",
+                    "icon": "i-lucide-building",
+                    "to": "/contacts/labs",
+                    "permission": "contacts.read",
+                    "order": 92.8,
+                },
             ],
         },
     }

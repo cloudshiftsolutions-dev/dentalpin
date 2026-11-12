@@ -38,12 +38,15 @@ class ContactService:
         include_inactive: bool = False,
         page: int = 1,
         page_size: int = 20,
+        exclude_type: str | None = None,
     ) -> tuple[list[Contact], int]:
         stmt = select(Contact).where(Contact.clinic_id == clinic_id)
         if not include_inactive:
             stmt = stmt.where(Contact.is_active.is_(True))
         if contact_type:
             stmt = stmt.where(Contact.contact_type == contact_type)
+        if exclude_type:
+            stmt = stmt.where(Contact.contact_type != exclude_type)
         if search:
             like = f"%{search}%"
             stmt = stmt.where(or_(Contact.name.ilike(like), Contact.notes.ilike(like)))

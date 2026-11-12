@@ -19,6 +19,12 @@
       "supplier": "Fournisseur",
       "other": "Autre",
       "delegate": "Délégué"
-    }
+    },
+    "othersDescription": "Suppliers and other external contacts. Labs are listed under Lab → Labs.",
+    "labsTitle": "Labs",
+    "labsDescription": "Dental labs you send lab orders to.",
+    "addLab": "Add lab",
+    "empty": "No contacts yet. Add a supplier or other contact.",
+    "labsEmpty": "No labs yet. Add the labs you send lab orders to."
   }
 }
