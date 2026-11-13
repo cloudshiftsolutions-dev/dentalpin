@@ -115,9 +115,31 @@
             color: #18181b;
         }
 
+        /* Table layout, not flex: Gmail/Outlook ignore flex, and a bare
+           label + value pair must not run together. */
         .info-row {
-            display: flex;
+            display: table;
+            width: 100%;
+            table-layout: fixed;
             margin-bottom: 12px;
+        }
+
+        .info-row > div {
+            display: table-cell;
+            vertical-align: middle;
+            padding-right: 12px;
+        }
+
+        .info-row > .label {
+            margin-bottom: 0;
+        }
+
+        .info-row > div:last-child {
+            padding-right: 0;
+        }
+
+        .info-row > .value {
+            text-align: right;
         }
 
         .info-row:last-child {
@@ -213,6 +235,9 @@
         html[dir="rtl"] .alert-error { border-left: none; border-right: 4px solid #ef4444; }
         html[dir="rtl"] .info-box .label,
         html[dir="rtl"] .info-box .value { text-align: right; }
+        html[dir="rtl"] .info-row > div { padding-right: 0; padding-left: 12px; }
+        html[dir="rtl"] .info-row > div:last-child { padding-left: 0; }
+        html[dir="rtl"] .info-row > .value { text-align: left; }
 
         /* Responsive */
         @media only screen and (max-width: 600px) {
