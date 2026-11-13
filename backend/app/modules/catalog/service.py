@@ -329,6 +329,13 @@ class CategoryService:
             await db.flush()
 
 
+def _jsonable_surface_prices(data: dict) -> None:
+    """Store surface tiers as strings: the JSONB encoder rejects Decimal."""
+    prices = data.get("surface_prices")
+    if prices:
+        data["surface_prices"] = {str(k): str(v) for k, v in prices.items()}
+
+
 class CatalogService:
     """Service for catalog item operations."""
 
@@ -466,6 +473,7 @@ class CatalogService:
 
         # Validate session template against the item total
         validate_session_template(data.get("default_price"), sessions_data)
+        _jsonable_surface_prices(data)
 
         # If no vat_type_id provided, use clinic default
         if not data.get("vat_type_id"):
@@ -519,6 +527,7 @@ class CatalogService:
         effective_total = new_total if new_total is not None else item.default_price
         if sessions_data != "__not_provided__":
             validate_session_template(effective_total, sessions_data)
+        _jsonable_surface_prices(data)
 
         for key, value in data.items():
             if value is not None:
